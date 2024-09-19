@@ -49,6 +49,13 @@ const ProductCreate: React.FC = () => {
         setCategories(data.data);
       }
     });
+    setCurrentProduct(
+      (c) =>
+        ({
+          ...c,
+          in_stock: true,
+        } as Product)
+    );
   }, []);
 
   const validateForm = () => {
