@@ -4,7 +4,9 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "pnpm install && pnpm --prefix client install && pnpm --prefix client run build",
+    "start": "node server/index.js"
   },
   "type": "module",
   "keywords": [],

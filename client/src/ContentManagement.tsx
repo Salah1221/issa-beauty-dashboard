@@ -24,6 +24,8 @@ const ContentManagement: React.FC<{
   const [bannerImages, setBannerImages] = useState<BannerImage[]>([]);
   const [loading, setLoading] = useState(false);
   const [deleteLoading, setDeleteLoading] = useState(false);
+  const [saveLoading, setSaveLoading] = useState(false);
+  const [selectedId, setSelectedId] = useState("");
 
   const handleAddBanner = async () => {
     if (newBannerImage) {
@@ -47,10 +49,12 @@ const ContentManagement: React.FC<{
 
   const handleDeleteBanner = async (bannerId: string) => {
     try {
+      setDeleteLoading(true);
       const response = await axios.delete(`/api/banner-images/${bannerId}`);
       if (response.data.success) {
         setBannerImages(bannerImages.filter((b) => b._id !== bannerId));
       }
+      setDeleteLoading(false);
     } catch (error) {
       console.error("Error deleting banner image:", error);
     }
@@ -77,9 +81,11 @@ const ContentManagement: React.FC<{
   const handleEditCategory = async (category: Category) => {
     if (editingCategory && editingCategory.name.trim()) {
       try {
+        setSaveLoading(true);
         const response = await axios.put(`/api/categories/${category._id}`, {
           name: editingCategory.name,
         });
+        setSaveLoading(false);
         if (response.data.success) {
           setAllCategories(
             allCategories.map((c) =>
@@ -171,7 +177,17 @@ const ContentManagement: React.FC<{
                   </TableCell>
                   <TableCell className="flex gap-3 justify-end">
                     {editingCategory && editingCategory._id === category._id ? (
-                      <Button onClick={() => handleEditCategory(category)}>
+                      <Button
+                        onClick={() => {
+                          handleEditCategory(category);
+                          setSelectedId(category._id);
+                        }}
+                      >
+                        {saveLoading && selectedId === category._id ? (
+                          <Loader2 className="w-5 h-5 animate-spin mr-2" />
+                        ) : (
+                          ""
+                        )}
                         Save
                       </Button>
                     ) : (
@@ -181,8 +197,16 @@ const ContentManagement: React.FC<{
                     )}
                     <Button
                       variant="destructive"
-                      onClick={() => handleDeleteCategory(category._id)}
+                      onClick={() => {
+                        handleDeleteCategory(category._id);
+                        setSelectedId(category._id);
+                      }}
                     >
+                      {deleteLoading && selectedId === category._id ? (
+                        <Loader2 className="w-5 h-5 animate-spin mr-2" />
+                      ) : (
+                        ""
+                      )}
                       Delete
                     </Button>
                   </TableCell>
@@ -232,8 +256,16 @@ const ContentManagement: React.FC<{
                   <TableCell>
                     <Button
                       variant="destructive"
-                      onClick={() => handleDeleteBanner(banner._id)}
+                      onClick={() => {
+                        handleDeleteBanner(banner._id);
+                        setSelectedId(banner._id);
+                      }}
                     >
+                      {deleteLoading && selectedId === banner._id ? (
+                        <Loader2 className="w-5 h-5 animate-spin mr-2" />
+                      ) : (
+                        ""
+                      )}
                       Delete
                     </Button>
                   </TableCell>

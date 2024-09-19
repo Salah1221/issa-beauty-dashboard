@@ -1,3 +1,4 @@
+import { Toaster } from "@/components/ui/sonner";
 import ErrorPage from "./ErrorPage";
 import Navbar from "./Navbar";
 import ProductCreate from "./ProductCreate";
@@ -9,6 +10,7 @@ const Layout: React.FC = () => {
     <>
       <Navbar />
       <Outlet />
+      <Toaster />
     </>
   );
 };

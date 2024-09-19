@@ -15,6 +15,7 @@ import { Image, Loader2 } from "lucide-react";
 import axios from "axios";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { Textarea } from "./components/ui/textarea";
+import { toast } from "sonner";
 
 const ProductCreate: React.FC = () => {
   const [searchParams] = useSearchParams();
@@ -113,6 +114,7 @@ const ProductCreate: React.FC = () => {
       setLoading(false);
     } catch (err) {
       console.error(err);
+      toast.error((err as Error).message);
     }
   };
 

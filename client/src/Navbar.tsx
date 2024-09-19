@@ -6,6 +6,7 @@ import { Link } from "react-router-dom";
 const Navbar: React.FC = () => {
   const [theme, setTheme] = useState<"light" | "dark">("light");
   const [mounted, setMounted] = useState(false);
+  const themeColorMetaTag = document.querySelector('meta[name="theme-color"]');
 
   useEffect(() => {
     setMounted(true);
@@ -13,13 +14,21 @@ const Navbar: React.FC = () => {
     if (savedTheme) {
       setTheme(savedTheme);
       document.body.classList.toggle("dark", savedTheme === "dark");
+      themeColorMetaTag?.setAttribute(
+        "content",
+        theme === "dark" ? "#020817" : "#ffffff"
+      );
     }
-  }, []);
+  }, [theme, themeColorMetaTag]);
 
   const toggleTheme = () => {
     const newTheme = theme === "light" ? "dark" : "light";
     setTheme(newTheme);
     document.body.classList.toggle("dark", newTheme === "dark");
+    themeColorMetaTag?.setAttribute(
+      "content",
+      theme === "dark" ? "#020817" : "#ffffff"
+    );
     localStorage.setItem("theme", newTheme);
   };
 
