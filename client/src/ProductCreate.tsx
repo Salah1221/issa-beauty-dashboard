@@ -130,41 +130,42 @@ const ProductCreate: React.FC = () => {
       <form className="space-y-4" onSubmit={handleSubmit}>
         <>
           <div className="space-y-2">
-            {
-              <>
-                <img
-                  src={imageUrl ?? ""}
-                  alt="Preview"
-                  className={`w-[300px] h-[200px] object-cover rounded ${
-                    !imageUrl ? "hidden" : ""
-                  } mb-3 mx-auto`}
-                />
-                {!imageUrl && (
-                  <div className="w-[300px] h-[200px] grid place-items-center border rounded mb-3 mx-auto">
-                    <Image className="w-8 h-8" fill="hsl(var(--border))" />
-                  </div>
-                )}
-                <Label htmlFor="imageUrl">Image URL</Label>
-                <Input
-                  id="imageUrl"
-                  name="imageUrl"
-                  type="file"
-                  accept="image/*"
-                  onInput={(e) => {
-                    const files = (e.target as HTMLInputElement).files;
-                    if (files && files.length > 0) {
-                      const file = files[0];
-                      const imageUrl = URL.createObjectURL(file);
-                      setImageUrl(imageUrl);
-                      setImageFile(file);
-                    }
-                  }}
-                />
-                {errors.imageUrl && (
-                  <p className="text-red-500 text-sm">{errors.imageUrl}</p>
-                )}
-              </>
-            }
+            <img
+              src={imageUrl ?? ""}
+              alt="Preview"
+              className={`w-[300px] h-[200px] object-cover rounded ${
+                !imageUrl ? "hidden" : ""
+              } mx-auto mb-5`}
+            />
+            {!imageUrl && (
+              <div
+                className="w-[300px] h-[200px] grid place-items-center border rounded mx-auto"
+                style={{ marginBottom: "1.25rem" }}
+              >
+                <Image className="w-8 h-8" fill="hsl(var(--border))" />
+              </div>
+            )}
+            <Label htmlFor="imageUrl" className="mt-5">
+              Image URL
+            </Label>
+            <Input
+              id="imageUrl"
+              name="imageUrl"
+              type="file"
+              accept="image/*"
+              onInput={(e) => {
+                const files = (e.target as HTMLInputElement).files;
+                if (files && files.length > 0) {
+                  const file = files[0];
+                  const imageUrl = URL.createObjectURL(file);
+                  setImageUrl(imageUrl);
+                  setImageFile(file);
+                }
+              }}
+            />
+            {errors.imageUrl && (
+              <p className="text-red-500 text-sm">{errors.imageUrl}</p>
+            )}
           </div>
         </>
         <div className="space-y-2">
@@ -315,6 +316,11 @@ const ProductCreate: React.FC = () => {
         <Button
           type="submit"
           className={`w-full ${loading ? "opacity-50" : ""}`}
+          disabled={
+            id !== null &&
+            Object.keys(currentProduct || {}).length === 1 &&
+            currentProduct?.in_stock !== undefined
+          }
         >
           {loading && (
             <Loader2
