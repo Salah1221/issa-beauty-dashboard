@@ -48,6 +48,18 @@ import ContentManagement from "./ContentManagement";
 type FetchProductsFunction = (page: number) => Promise<void>;
 type DeleteProductFunction = (id: string) => Promise<void>;
 
+const TopSkeleton = () => {
+  return (
+    <div className="flex flex-col sm:flex-row gap-4 mb-6">
+      <Skeleton className="h-[33px] w-full sm:w-[320px]" />
+      <Skeleton className="h-[33px] w-full sm:w-[180px]" />
+      <Skeleton className="h-[33px] w-full sm:w-[180px]" />
+      <Skeleton className="h-[33px] w-full sm:w-[186px]" />
+      <Skeleton className="h-[33px] w-full sm:w-[140px]" />
+    </div>
+  );
+};
+
 const RowsSkeleton = () => (
   <>
     {[...Array(12)].map((_, index) => (
@@ -220,81 +232,85 @@ const ProductDashboard: React.FC = () => {
     <div className="p-5 sm:p-6 md:p-8 max-w-7xl mx-auto">
       <h1 className="text-2xl sm:text-3xl font-bold mb-4 sm:mb-6">Products</h1>
 
-      <div className="flex flex-col sm:flex-row gap-4 mb-6">
-        <Input
-          placeholder="Search products..."
-          value={searchTerm}
-          onChange={handleSearch}
-          className="w-full sm:max-w-xs"
-        />
+      {!loading ? (
+        <div className="flex flex-col sm:flex-row gap-4 mb-6">
+          <Input
+            placeholder="Search products..."
+            value={searchTerm}
+            onChange={handleSearch}
+            className="w-full sm:max-w-xs"
+          />
 
-        <Select onValueChange={handleCategoryFilter} value={categoryFilter}>
-          <SelectTrigger className="w-full sm:w-[180px]">
-            <SelectValue placeholder="Filter by category" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All Categories</SelectItem>
-            {allCategories.map((category) => (
-              <SelectItem key={category.name} value={category.name}>
-                {category.name}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+          <Select onValueChange={handleCategoryFilter} value={categoryFilter}>
+            <SelectTrigger className="w-full sm:w-[180px]">
+              <SelectValue placeholder="Filter by category" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Categories</SelectItem>
+              {allCategories.map((category) => (
+                <SelectItem key={category.name} value={category.name}>
+                  {category.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
 
-        <Select onValueChange={handleSort} value={sortOrder}>
-          <SelectTrigger className="w-full sm:w-[180px]">
-            <SelectValue placeholder="Sort by" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="newest">Newest First</SelectItem>
-            <SelectItem value="oldest">Oldest First</SelectItem>
-          </SelectContent>
-        </Select>
+          <Select onValueChange={handleSort} value={sortOrder}>
+            <SelectTrigger className="w-full sm:w-[180px]">
+              <SelectValue placeholder="Sort by" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="newest">Newest First</SelectItem>
+              <SelectItem value="oldest">Oldest First</SelectItem>
+            </SelectContent>
+          </Select>
 
-        {!mobile ? (
-          <Dialog>
-            <DialogTrigger asChild>
-              <Button>
-                <TableOfContents className="mr-2 h-4 w-4" /> Manage Categories
-              </Button>
-            </DialogTrigger>
-            <DialogContent aria-describedby={undefined}>
-              <DialogHeader className="mb-3">
-                <DialogTitle>Manage Content</DialogTitle>
-              </DialogHeader>
-              <ContentManagement
-                allCategories={allCategories}
-                setAllCategories={setAllCategories}
-              />
-            </DialogContent>
-          </Dialog>
-        ) : (
-          <Drawer>
-            <DrawerTrigger asChild>
-              <Button>
-                <TableOfContents className="mr-2 h-4 w-4" /> Manage Content
-              </Button>
-            </DrawerTrigger>
-            <DrawerContent className="p-5 pb-7" aria-describedby={undefined}>
-              <DrawerHeader className="mb-3">
-                <DialogTitle>Manage Content</DialogTitle>
-              </DrawerHeader>
-              <ContentManagement
-                allCategories={allCategories}
-                setAllCategories={setAllCategories}
-              />
-            </DrawerContent>
-          </Drawer>
-        )}
+          {!mobile ? (
+            <Dialog>
+              <DialogTrigger asChild>
+                <Button>
+                  <TableOfContents className="mr-2 h-4 w-4" /> Manage Categories
+                </Button>
+              </DialogTrigger>
+              <DialogContent aria-describedby={undefined}>
+                <DialogHeader className="mb-3">
+                  <DialogTitle>Manage Content</DialogTitle>
+                </DialogHeader>
+                <ContentManagement
+                  allCategories={allCategories}
+                  setAllCategories={setAllCategories}
+                />
+              </DialogContent>
+            </Dialog>
+          ) : (
+            <Drawer>
+              <DrawerTrigger asChild>
+                <Button>
+                  <TableOfContents className="mr-2 h-4 w-4" /> Manage Content
+                </Button>
+              </DrawerTrigger>
+              <DrawerContent className="p-5 pb-7" aria-describedby={undefined}>
+                <DrawerHeader className="mb-3">
+                  <DialogTitle>Manage Content</DialogTitle>
+                </DrawerHeader>
+                <ContentManagement
+                  allCategories={allCategories}
+                  setAllCategories={setAllCategories}
+                />
+              </DrawerContent>
+            </Drawer>
+          )}
 
-        <Button
-          onClick={() => navigate("/create")}
-          className="w-full sm:w-auto"
-        >
-          <PlusCircle className="mr-2 h-4 w-4" /> Add Product
-        </Button>
-      </div>
+          <Button
+            onClick={() => navigate("/create")}
+            className="w-full sm:w-auto"
+          >
+            <PlusCircle className="mr-2 h-4 w-4" /> Add Product
+          </Button>
+        </div>
+      ) : (
+        <TopSkeleton />
+      )}
 
       <div className="overflow-x-auto">
         {filteredProducts.length > 0 ? (
