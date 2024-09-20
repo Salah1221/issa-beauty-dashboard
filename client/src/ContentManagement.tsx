@@ -130,7 +130,7 @@ const ContentManagement: React.FC<{
 
   return (
     <Tabs defaultValue="categories">
-      <TabsList className="grid w-full grid-cols-2 mb-3">
+      <TabsList className="grid w-full grid-cols-2 mb-5">
         <TabsTrigger value="categories">Categories</TabsTrigger>
         <TabsTrigger value="banners">Banner Images</TabsTrigger>
       </TabsList>
@@ -141,10 +141,7 @@ const ContentManagement: React.FC<{
             value={newCategory}
             onChange={(e) => setNewCategory(e.target.value)}
           />
-          <Button
-            onClick={handleAddCategory}
-            className={`${loading ? "opacity-50" : ""}`}
-          >
+          <Button onClick={handleAddCategory} disabled={loading}>
             {loading && <Loader2 className="w-5 h-5 animate-spin mr-2" />}
             Add
           </Button>
@@ -182,6 +179,7 @@ const ContentManagement: React.FC<{
                           handleEditCategory(category);
                           setSelectedId(category._id);
                         }}
+                        disabled={saveLoading && selectedId === category._id}
                       >
                         {saveLoading && selectedId === category._id ? (
                           <Loader2 className="w-5 h-5 animate-spin mr-2" />
@@ -201,6 +199,7 @@ const ContentManagement: React.FC<{
                         handleDeleteCategory(category._id);
                         setSelectedId(category._id);
                       }}
+                      disabled={deleteLoading && selectedId === category._id}
                     >
                       {deleteLoading && selectedId === category._id ? (
                         <Loader2 className="w-5 h-5 animate-spin mr-2" />
@@ -222,10 +221,7 @@ const ContentManagement: React.FC<{
             type="file"
             onChange={(e) => setNewBannerImage(e.target.files?.[0] || null)}
           />
-          <Button
-            onClick={handleAddBanner}
-            className={`${loading ? "opacity-50" : ""}`}
-          >
+          <Button onClick={handleAddBanner} disabled={loading}>
             <Loader2
               className={`w-5 h-5 animate-spin ${loading ? "" : "hidden"} mr-2`}
             />
@@ -260,6 +256,7 @@ const ContentManagement: React.FC<{
                         handleDeleteBanner(banner._id);
                         setSelectedId(banner._id);
                       }}
+                      disabled={deleteLoading && selectedId === banner._id}
                     >
                       {deleteLoading && selectedId === banner._id ? (
                         <Loader2 className="w-5 h-5 animate-spin mr-2" />

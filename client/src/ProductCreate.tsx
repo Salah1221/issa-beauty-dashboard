@@ -10,12 +10,49 @@ import {
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Category, Product } from "./types";
-import React, { useEffect, useState } from "react";
+import React, { CSSProperties, useEffect, useState } from "react";
 import { Image, Loader2 } from "lucide-react";
 import axios from "axios";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { Textarea } from "./components/ui/textarea";
 import { toast } from "sonner";
+import { Skeleton } from "./components/ui/skeleton";
+
+const ProductCreateSkeleton = () => (
+  <div className="p-5 sm:p-6 md:p-8 max-w-3xl mx-auto">
+    <form className="space-y-4">
+      <div className="space-y-2">
+        <Skeleton className="w-[300px] h-[200px] object-cover rounded mx-auto mb-5" />
+        <Skeleton className="mt-5 w-[100px] h-[20px]" />
+        <Skeleton className="w-full h-[35px]" />
+      </div>
+      <div className="space-y-2">
+        <Skeleton className="mt-5 w-[100px] h-[20px]" />
+        <Skeleton className="w-full h-[35px]" />
+      </div>
+      <div className="space-y-2">
+        <Skeleton className="mt-5 w-[100px] h-[20px]" />
+        <Skeleton className="w-[180px] h-[35px]" />
+      </div>
+      <div className="space-y-2">
+        <Skeleton className="mt-5 w-[100px] h-[20px]" />
+        <Skeleton className="w-full h-[65px]" />
+      </div>
+      <div className="space-y-2">
+        <Skeleton className="mt-5 w-[100px] h-[20px]" />
+        <Skeleton className="w-full h-[35px]" />
+      </div>
+      <div className="space-y-2">
+        <Skeleton className="mt-5 w-[100px] h-[20px]" />
+        <Skeleton className="w-full h-[35px]" />
+      </div>
+      <div className="flex items-center space-x-2">
+        <Skeleton className="w-[100px] h-[25px]" />
+      </div>
+      <Skeleton className="w-full h-[35px]" />
+    </form>
+  </div>
+);
 
 const ProductCreate: React.FC = () => {
   const [searchParams] = useSearchParams();
@@ -27,6 +64,7 @@ const ProductCreate: React.FC = () => {
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(false);
+  const [pageLoading, setPageLoading] = useState(true);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -39,6 +77,14 @@ const ProductCreate: React.FC = () => {
           setImageUrl(res.data.data.imageUrl);
         })
         .catch((err) => console.log(err.message));
+    } else {
+      setCurrentProduct(
+        (c) =>
+          ({
+            ...c,
+            in_stock: true,
+          } as Product)
+      );
     }
   }, [id]);
 
@@ -47,16 +93,12 @@ const ProductCreate: React.FC = () => {
       const data = response.data;
       if (data.success) {
         setCategories(data.data);
+        if ((id && currentProduct) || !id) {
+          setPageLoading(false);
+        }
       }
     });
-    setCurrentProduct(
-      (c) =>
-        ({
-          ...c,
-          in_stock: true,
-        } as Product)
-    );
-  }, []);
+  }, [id, currentProduct]);
 
   const validateForm = () => {
     const newErrors: Record<string, string> = {};
@@ -125,7 +167,9 @@ const ProductCreate: React.FC = () => {
     }
   };
 
-  return (
+  return pageLoading ? (
+    <ProductCreateSkeleton />
+  ) : (
     <div className="p-5 sm:p-6 md:p-8 max-w-3xl mx-auto">
       <form className="space-y-4" onSubmit={handleSubmit}>
         <>
@@ -140,7 +184,12 @@ const ProductCreate: React.FC = () => {
             {!imageUrl && (
               <div
                 className="w-[300px] h-[200px] grid place-items-center border rounded mx-auto"
-                style={{ marginBottom: "1.25rem" }}
+                style={
+                  {
+                    marginBottom: "1.25rem",
+                    "--tw-space-y-reverse": 0,
+                  } as CSSProperties
+                }
               >
                 <Image className="w-8 h-8" fill="hsl(var(--border))" />
               </div>
@@ -189,7 +238,7 @@ const ProductCreate: React.FC = () => {
         <div className="space-y-2">
           <Label htmlFor="category">Category</Label>
           <Select
-            defaultValue={currentProduct?.category}
+            value={currentProduct ? currentProduct.category : undefined}
             onValueChange={(value) =>
               setCurrentProduct((c) => ({ ...c, category: value } as Product))
             }
@@ -262,11 +311,11 @@ const ProductCreate: React.FC = () => {
           )}
         </div>
         <div className="space-y-2">
-          <Label htmlFor="price">Discount Percentage</Label>
+          <Label htmlFor="discountPercentage">Discount Percentage</Label>
           <Input
             id="discountPercentage"
             name="discountPercentage"
-            defaultValue={currentProduct?.discountPercentage ?? 0}
+            defaultValue={currentProduct?.discountPercentage}
             min={0}
             max={100}
             onChange={(e) => {
@@ -298,9 +347,7 @@ const ProductCreate: React.FC = () => {
           <Switch
             id="in_stock"
             name="in_stock"
-            defaultChecked={
-              currentProduct?.in_stock ? currentProduct?.in_stock : true
-            }
+            checked={currentProduct ? currentProduct?.in_stock : true}
             onCheckedChange={(in_stock) =>
               setCurrentProduct(
                 (c) =>
@@ -315,11 +362,10 @@ const ProductCreate: React.FC = () => {
         </div>
         <Button
           type="submit"
-          className={`w-full ${loading ? "opacity-50" : ""}`}
+          className={`w-full`}
           disabled={
-            id !== null &&
-            Object.keys(currentProduct || {}).length === 1 &&
-            currentProduct?.in_stock !== undefined
+            (id !== null && Object.keys(currentProduct || {}).length === 0) ||
+            loading
           }
         >
           {loading && (

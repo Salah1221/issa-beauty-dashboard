@@ -348,6 +348,7 @@ const ProductDashboard: React.FC = () => {
                         variant="ghost"
                         size="sm"
                         onClick={() => handleDelete(product._id)}
+                        disabled={deleteLoading && product._id === deletedId}
                       >
                         {!deleteLoading || product._id !== deletedId ? (
                           <Trash2 className="h-4 w-4" />
