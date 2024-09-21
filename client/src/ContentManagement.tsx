@@ -13,6 +13,49 @@ import {
   TableRow,
 } from "./components/ui/table";
 import { Loader2 } from "lucide-react";
+import { Skeleton } from "@/components/ui/skeleton";
+
+const CategoriesRowsSkeleton = () =>
+  Array.from({ length: 5 }).map((_, i) => (
+    <TableRow key={i}>
+      <TableCell>
+        <Skeleton className="h-3 w-[100px]" />
+      </TableCell>
+      <TableCell>
+        <div className="flex gap-3 justify-end">
+          <Skeleton className="h-9 w-[59px]" />
+          <Skeleton className="h-9 w-[75px]" />
+        </div>
+      </TableCell>
+    </TableRow>
+  ));
+const BannerRowsSkeleton = () =>
+  Array.from({ length: 5 }).map((_, i) => (
+    <TableRow key={i}>
+      <TableCell>
+        <Skeleton className="w-20 rounded aspect-video" />
+      </TableCell>
+      <TableCell>
+        <Skeleton className="h-3 w-[200px]" />
+      </TableCell>
+      <TableCell align="right">
+        <Skeleton className="h-9 w-[75px]" />
+      </TableCell>
+    </TableRow>
+  ));
+
+const CategoriesTopSkeleton = () => (
+  <div className="flex gap-2 mb-4">
+    <Skeleton className="w-full h-[33px]" />
+    <Skeleton className="w-[80px] h-[33px]" />
+  </div>
+);
+const BannerImgsTopSkeleton = () => (
+  <div className="flex gap-2 mb-4">
+    <Skeleton className="w-full h-[33px]" />
+    <Skeleton className="w-[100px] h-[33px]" />
+  </div>
+);
 
 const ContentManagement: React.FC<{
   allCategories: Category[];
@@ -26,6 +69,8 @@ const ContentManagement: React.FC<{
   const [deleteLoading, setDeleteLoading] = useState(false);
   const [saveLoading, setSaveLoading] = useState(false);
   const [selectedId, setSelectedId] = useState("");
+  const [categoriesLoading, setCategoriesLoading] = useState(true);
+  const [bannerLoading, setBannerLoading] = useState(true);
 
   const handleAddBanner = async () => {
     if (newBannerImage) {
@@ -128,6 +173,22 @@ const ContentManagement: React.FC<{
     fetchBannerImages();
   }, []);
 
+  useEffect(() => {
+    if (allCategories.length) {
+      setCategoriesLoading(false);
+    } else {
+      setCategoriesLoading(true);
+    }
+  }, [allCategories]);
+
+  useEffect(() => {
+    if (bannerImages.length) {
+      setBannerLoading(false);
+    } else {
+      setBannerLoading(true);
+    }
+  }, [bannerImages]);
+
   return (
     <Tabs defaultValue="categories">
       <TabsList className="grid w-full grid-cols-2 mb-5">
@@ -135,17 +196,21 @@ const ContentManagement: React.FC<{
         <TabsTrigger value="banners">Banner Images</TabsTrigger>
       </TabsList>
       <TabsContent value="categories">
-        <div className="flex gap-2 mb-4">
-          <Input
-            placeholder="New category name"
-            value={newCategory}
-            onChange={(e) => setNewCategory(e.target.value)}
-          />
-          <Button onClick={handleAddCategory} disabled={loading}>
-            {loading && <Loader2 className="w-5 h-5 animate-spin mr-2" />}
-            Add
-          </Button>
-        </div>
+        {!categoriesLoading ? (
+          <div className="flex gap-2 mb-4">
+            <Input
+              placeholder="New category name"
+              value={newCategory}
+              onChange={(e) => setNewCategory(e.target.value)}
+            />
+            <Button onClick={handleAddCategory} disabled={loading}>
+              {loading && <Loader2 className="w-5 h-5 animate-spin mr-2" />}
+              Add
+            </Button>
+          </div>
+        ) : (
+          <CategoriesTopSkeleton />
+        )}
         <div className="max-h-[300px] overflow-y-auto">
           <Table>
             <TableHeader>
@@ -155,119 +220,135 @@ const ContentManagement: React.FC<{
               </TableRow>
             </TableHeader>
             <TableBody>
-              {allCategories.map((category) => (
-                <TableRow key={category._id}>
-                  <TableCell>
-                    {editingCategory && editingCategory._id === category._id ? (
-                      <Input
-                        value={editingCategory.name}
-                        onChange={(e) =>
-                          setEditingCategory({
-                            ...editingCategory,
-                            name: e.target.value,
-                          })
-                        }
-                      />
-                    ) : (
-                      category.name
-                    )}
-                  </TableCell>
-                  <TableCell className="flex gap-3 justify-end">
-                    {editingCategory && editingCategory._id === category._id ? (
+              {!categoriesLoading ? (
+                allCategories.map((category) => (
+                  <TableRow key={category._id}>
+                    <TableCell>
+                      {editingCategory &&
+                      editingCategory._id === category._id ? (
+                        <Input
+                          value={editingCategory.name}
+                          onChange={(e) =>
+                            setEditingCategory({
+                              ...editingCategory,
+                              name: e.target.value,
+                            })
+                          }
+                        />
+                      ) : (
+                        category.name
+                      )}
+                    </TableCell>
+                    <TableCell className="flex gap-3 justify-end">
+                      {editingCategory &&
+                      editingCategory._id === category._id ? (
+                        <Button
+                          onClick={() => {
+                            handleEditCategory(category);
+                            setSelectedId(category._id);
+                          }}
+                          disabled={saveLoading && selectedId === category._id}
+                        >
+                          {saveLoading && selectedId === category._id ? (
+                            <Loader2 className="w-5 h-5 animate-spin mr-2" />
+                          ) : (
+                            ""
+                          )}
+                          Save
+                        </Button>
+                      ) : (
+                        <Button onClick={() => setEditingCategory(category)}>
+                          Edit
+                        </Button>
+                      )}
                       <Button
+                        variant="destructive"
                         onClick={() => {
-                          handleEditCategory(category);
+                          handleDeleteCategory(category._id);
                           setSelectedId(category._id);
                         }}
-                        disabled={saveLoading && selectedId === category._id}
+                        disabled={deleteLoading && selectedId === category._id}
                       >
-                        {saveLoading && selectedId === category._id ? (
+                        {deleteLoading && selectedId === category._id ? (
                           <Loader2 className="w-5 h-5 animate-spin mr-2" />
                         ) : (
                           ""
                         )}
-                        Save
+                        Delete
                       </Button>
-                    ) : (
-                      <Button onClick={() => setEditingCategory(category)}>
-                        Edit
-                      </Button>
-                    )}
-                    <Button
-                      variant="destructive"
-                      onClick={() => {
-                        handleDeleteCategory(category._id);
-                        setSelectedId(category._id);
-                      }}
-                      disabled={deleteLoading && selectedId === category._id}
-                    >
-                      {deleteLoading && selectedId === category._id ? (
-                        <Loader2 className="w-5 h-5 animate-spin mr-2" />
-                      ) : (
-                        ""
-                      )}
-                      Delete
-                    </Button>
-                  </TableCell>
-                </TableRow>
-              ))}
+                    </TableCell>
+                  </TableRow>
+                ))
+              ) : (
+                <CategoriesRowsSkeleton />
+              )}
             </TableBody>
           </Table>
         </div>
       </TabsContent>
       <TabsContent value="banners">
-        <div className="flex gap-2 mb-4">
-          <Input
-            type="file"
-            onChange={(e) => setNewBannerImage(e.target.files?.[0] || null)}
-          />
-          <Button onClick={handleAddBanner} disabled={loading}>
-            <Loader2
-              className={`w-5 h-5 animate-spin ${loading ? "" : "hidden"} mr-2`}
+        {!bannerLoading ? (
+          <div className="flex gap-2 mb-4">
+            <Input
+              type="file"
+              onChange={(e) => setNewBannerImage(e.target.files?.[0] || null)}
             />
-            Add Banner
-          </Button>
-        </div>
+            <Button onClick={handleAddBanner} disabled={loading}>
+              <Loader2
+                className={`w-5 h-5 animate-spin ${
+                  loading ? "" : "hidden"
+                } mr-2`}
+              />
+              Add Banner
+            </Button>
+          </div>
+        ) : (
+          <BannerImgsTopSkeleton />
+        )}
         <div className="max-h-[300px] overflow-y-auto">
           <Table>
             <TableHeader>
               <TableRow>
                 <TableHead>Image</TableHead>
                 <TableHead>Link</TableHead>
-                <TableHead>Actions</TableHead>
+                <TableHead className="text-right">Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
-              {bannerImages.map((banner) => (
-                <TableRow key={banner._id}>
-                  <TableCell>
-                    <img
-                      src={banner.imageUrl}
-                      alt="Banner"
-                      className="w-20 object-cover rounded"
-                      style={{ aspectRatio: "16/9" }}
-                    />
-                  </TableCell>
-                  <TableCell>{banner.imageUrl}</TableCell>
-                  <TableCell>
-                    <Button
-                      variant="destructive"
-                      onClick={() => {
-                        handleDeleteBanner(banner._id);
-                        setSelectedId(banner._id);
-                      }}
-                      disabled={deleteLoading && selectedId === banner._id}
-                    >
-                      {deleteLoading && selectedId === banner._id ? (
-                        <Loader2 className="w-5 h-5 animate-spin mr-2" />
-                      ) : (
-                        ""
-                      )}
-                      Delete
-                    </Button>
-                  </TableCell>
-                </TableRow>
-              ))}
+              {!bannerLoading ? (
+                bannerImages.map((banner) => (
+                  <TableRow key={banner._id}>
+                    <TableCell>
+                      <img
+                        src={banner.imageUrl}
+                        alt="Banner"
+                        className="w-20 object-cover rounded"
+                        style={{ aspectRatio: "16/9" }}
+                      />
+                    </TableCell>
+                    <TableCell>{banner.imageUrl}</TableCell>
+                    <TableCell>
+                      <Button
+                        variant="destructive"
+                        onClick={() => {
+                          handleDeleteBanner(banner._id);
+                          setSelectedId(banner._id);
+                        }}
+                        disabled={deleteLoading && selectedId === banner._id}
+                      >
+                        {deleteLoading && selectedId === banner._id ? (
+                          <Loader2 className="w-5 h-5 animate-spin mr-2" />
+                        ) : (
+                          ""
+                        )}
+                        Delete
+                      </Button>
+                    </TableCell>
+                  </TableRow>
+                ))
+              ) : (
+                <BannerRowsSkeleton />
+              )}
             </TableBody>
           </Table>
         </div>

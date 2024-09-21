@@ -11,5 +11,7 @@
       "sizes": "512x512 128x128 64x64 32x32 24x24 16x16",
       "type": "image/png"
     }
-  ]
+  ],
+  "id": "issa_beauty-374336",
+  "display_override": ["window-controls-overlay", "standalone"]
 }
