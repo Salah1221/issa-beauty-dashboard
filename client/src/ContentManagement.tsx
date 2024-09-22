@@ -14,6 +14,7 @@ import {
 } from "./components/ui/table";
 import { Loader2 } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
+import { toast } from "sonner";
 
 const CategoriesRowsSkeleton = () =>
   Array.from({ length: 5 }).map((_, i) => (
@@ -60,7 +61,14 @@ const BannerImgsTopSkeleton = () => (
 const ContentManagement: React.FC<{
   allCategories: Category[];
   setAllCategories: React.Dispatch<React.SetStateAction<Category[]>>;
-}> = ({ allCategories, setAllCategories }) => {
+  categoriesLoading: boolean;
+  setCategoriesLoading: React.Dispatch<React.SetStateAction<boolean>>;
+}> = ({
+  allCategories,
+  setAllCategories,
+  categoriesLoading,
+  setCategoriesLoading,
+}) => {
   const [newCategory, setNewCategory] = useState("");
   const [editingCategory, setEditingCategory] = useState<Category | null>(null);
   const [newBannerImage, setNewBannerImage] = useState<File | null>(null);
@@ -69,7 +77,6 @@ const ContentManagement: React.FC<{
   const [deleteLoading, setDeleteLoading] = useState(false);
   const [saveLoading, setSaveLoading] = useState(false);
   const [selectedId, setSelectedId] = useState("");
-  const [categoriesLoading, setCategoriesLoading] = useState(true);
   const [bannerLoading, setBannerLoading] = useState(true);
 
   const handleAddBanner = async () => {
@@ -164,8 +171,10 @@ const ContentManagement: React.FC<{
       if (response.data.success) {
         setBannerImages(response.data.data);
       }
+      setBannerLoading(false);
     } catch (error) {
       console.error("Error fetching banner images:", error);
+      toast.error("Error fetching banner images");
     }
   };
 
@@ -176,18 +185,8 @@ const ContentManagement: React.FC<{
   useEffect(() => {
     if (allCategories.length) {
       setCategoriesLoading(false);
-    } else {
-      setCategoriesLoading(true);
     }
-  }, [allCategories]);
-
-  useEffect(() => {
-    if (bannerImages.length) {
-      setBannerLoading(false);
-    } else {
-      setBannerLoading(true);
-    }
-  }, [bannerImages]);
+  }, [allCategories, setCategoriesLoading]);
 
   return (
     <Tabs defaultValue="categories">

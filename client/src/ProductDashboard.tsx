@@ -124,6 +124,7 @@ const ProductDashboard: React.FC = () => {
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [deletedId, setDeletedId] = useState("");
+  const [categoriesLoading, setCategoriesLoading] = useState(true);
   const navigate = useNavigate();
   const mobile = useMediaQuery("(max-width: 640px)");
 
@@ -186,6 +187,7 @@ const ProductDashboard: React.FC = () => {
       if (data.success) {
         setAllCategories(data.data);
       }
+      setCategoriesLoading(false);
     });
   }, [allCategories]);
 
@@ -279,6 +281,8 @@ const ProductDashboard: React.FC = () => {
                 <ContentManagement
                   allCategories={allCategories}
                   setAllCategories={setAllCategories}
+                  categoriesLoading={categoriesLoading}
+                  setCategoriesLoading={setCategoriesLoading}
                 />
               </DialogContent>
             </Dialog>
@@ -296,6 +300,8 @@ const ProductDashboard: React.FC = () => {
                 <ContentManagement
                   allCategories={allCategories}
                   setAllCategories={setAllCategories}
+                  categoriesLoading={categoriesLoading}
+                  setCategoriesLoading={setCategoriesLoading}
                 />
               </DrawerContent>
             </Drawer>
