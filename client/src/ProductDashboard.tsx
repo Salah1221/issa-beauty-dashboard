@@ -48,36 +48,27 @@ import ContentManagement from "./ContentManagement";
 type FetchProductsFunction = (page: number) => Promise<void>;
 type DeleteProductFunction = (id: string) => Promise<void>;
 
-const TopSkeleton = () => {
-  return (
-    <div className="flex flex-col sm:flex-row gap-4 mb-6">
-      <Skeleton className="h-[33px] w-full sm:w-[320px]" />
-      <Skeleton className="h-[33px] w-full sm:w-[180px]" />
-      <Skeleton className="h-[33px] w-full sm:w-[180px]" />
-      <Skeleton className="h-[33px] w-full sm:w-[186px]" />
-      <Skeleton className="h-[33px] w-full sm:w-[140px]" />
-    </div>
-  );
-};
-
 const RowsSkeleton = () => (
   <>
     {[...Array(12)].map((_, index) => (
       <TableRow key={index} className={index === 0 ? "border-t" : ""}>
         <TableCell>
-          <Skeleton className="h-4 w-full max-w-[200px]" />
+          <Skeleton className="h-10 rounded" style={{ aspectRatio: "3 / 2" }} />
         </TableCell>
         <TableCell>
-          <Skeleton className="h-4 w-full max-w-[177px]" />
+          <Skeleton className="h-4 w-[200px]" />
         </TableCell>
         <TableCell>
-          <Skeleton className="h-4 w-full max-w-[130px]" />
+          <Skeleton className="h-4 w-full min-w-[79px] max-w-[177px]" />
         </TableCell>
         <TableCell>
-          <Skeleton className="h-4 w-full max-w-[170px]" />
+          <Skeleton className="h-4 w-full min-w-[67px] max-w-[130px]" />
         </TableCell>
         <TableCell>
-          <Skeleton className="h-6 w-full max-w-[190px]" />
+          <Skeleton className="h-4 w-full min-w-[75px] max-w-[170px]" />
+        </TableCell>
+        <TableCell>
+          <Skeleton className="h-6 w-full min-w-[110px] max-w-[190px]" />
         </TableCell>
         <TableCell className="text-right">
           <div className="flex justify-end space-x-2">
@@ -95,6 +86,7 @@ const TableSkeleton = ({ part = false }) => (
     {!part && (
       <TableHeader>
         <TableRow>
+          <TableHead>Image</TableHead>
           <TableHead className="w-[200px]">Name</TableHead>
           <TableHead>Category</TableHead>
           <TableHead>Price</TableHead>
@@ -209,131 +201,125 @@ const ProductDashboard: React.FC = () => {
     setProducts(products.filter((p) => p._id !== id));
   };
 
-  const filteredProducts = products
-    .filter((product) =>
-      product.name.toLowerCase().includes(searchTerm.toLowerCase())
-    )
-    .filter((product) =>
-      categoryFilter && categoryFilter !== "all"
-        ? product.category === categoryFilter
-        : true
-    )
-    .sort((a, b) => {
-      if (sortOrder === "newest") {
-        return (
-          new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-        );
-      } else {
-        return (
-          new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
-        );
-      }
-    });
+  const filteredProducts = products.sort((a, b) => {
+    if (sortOrder === "newest") {
+      return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+    } else {
+      return new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
+    }
+  });
 
   return (
     <div className="p-5 sm:p-6 md:p-8 max-w-7xl mx-auto">
       <h1 className="text-2xl sm:text-3xl font-bold mb-4 sm:mb-6">Products</h1>
+      <div className="flex flex-col sm:flex-row gap-4 mb-6">
+        <Input
+          placeholder="Search products..."
+          value={searchTerm}
+          onChange={handleSearch}
+          className="w-full sm:max-w-xs"
+        />
 
-      {!loading ? (
-        <div className="flex flex-col sm:flex-row gap-4 mb-6">
-          <Input
-            placeholder="Search products..."
-            value={searchTerm}
-            onChange={handleSearch}
-            className="w-full sm:max-w-xs"
-          />
+        <Select onValueChange={handleCategoryFilter} value={categoryFilter}>
+          <SelectTrigger className="w-full sm:w-[180px]">
+            <SelectValue placeholder="Filter by category" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All Categories</SelectItem>
+            {allCategories.map((category) => (
+              <SelectItem key={category.name} value={category.name}>
+                {category.name}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
 
-          <Select onValueChange={handleCategoryFilter} value={categoryFilter}>
-            <SelectTrigger className="w-full sm:w-[180px]">
-              <SelectValue placeholder="Filter by category" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Categories</SelectItem>
-              {allCategories.map((category) => (
-                <SelectItem key={category.name} value={category.name}>
-                  {category.name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+        <Select onValueChange={handleSort} value={sortOrder}>
+          <SelectTrigger className="w-full sm:w-[180px]">
+            <SelectValue placeholder="Sort by" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="newest">Newest First</SelectItem>
+            <SelectItem value="oldest">Oldest First</SelectItem>
+          </SelectContent>
+        </Select>
 
-          <Select onValueChange={handleSort} value={sortOrder}>
-            <SelectTrigger className="w-full sm:w-[180px]">
-              <SelectValue placeholder="Sort by" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="newest">Newest First</SelectItem>
-              <SelectItem value="oldest">Oldest First</SelectItem>
-            </SelectContent>
-          </Select>
+        {!mobile ? (
+          <Dialog>
+            <DialogTrigger asChild>
+              <Button>
+                <TableOfContents className="mr-2 h-4 w-4" /> Manage Categories
+              </Button>
+            </DialogTrigger>
+            <DialogContent aria-describedby={undefined}>
+              <DialogHeader className="mb-3">
+                <DialogTitle>Manage Content</DialogTitle>
+              </DialogHeader>
+              <ContentManagement
+                allCategories={allCategories}
+                setAllCategories={setAllCategories}
+                categoriesLoading={categoriesLoading}
+                setCategoriesLoading={setCategoriesLoading}
+              />
+            </DialogContent>
+          </Dialog>
+        ) : (
+          <Drawer>
+            <DrawerTrigger asChild>
+              <Button>
+                <TableOfContents className="mr-2 h-4 w-4" /> Manage Content
+              </Button>
+            </DrawerTrigger>
+            <DrawerContent className="p-5 pb-7" aria-describedby={undefined}>
+              <DrawerHeader className="mb-3">
+                <DialogTitle>Manage Content</DialogTitle>
+              </DrawerHeader>
+              <ContentManagement
+                allCategories={allCategories}
+                setAllCategories={setAllCategories}
+                categoriesLoading={categoriesLoading}
+                setCategoriesLoading={setCategoriesLoading}
+              />
+            </DrawerContent>
+          </Drawer>
+        )}
 
-          {!mobile ? (
-            <Dialog>
-              <DialogTrigger asChild>
-                <Button>
-                  <TableOfContents className="mr-2 h-4 w-4" /> Manage Categories
-                </Button>
-              </DialogTrigger>
-              <DialogContent aria-describedby={undefined}>
-                <DialogHeader className="mb-3">
-                  <DialogTitle>Manage Content</DialogTitle>
-                </DialogHeader>
-                <ContentManagement
-                  allCategories={allCategories}
-                  setAllCategories={setAllCategories}
-                  categoriesLoading={categoriesLoading}
-                  setCategoriesLoading={setCategoriesLoading}
-                />
-              </DialogContent>
-            </Dialog>
-          ) : (
-            <Drawer>
-              <DrawerTrigger asChild>
-                <Button>
-                  <TableOfContents className="mr-2 h-4 w-4" /> Manage Content
-                </Button>
-              </DrawerTrigger>
-              <DrawerContent className="p-5 pb-7" aria-describedby={undefined}>
-                <DrawerHeader className="mb-3">
-                  <DialogTitle>Manage Content</DialogTitle>
-                </DrawerHeader>
-                <ContentManagement
-                  allCategories={allCategories}
-                  setAllCategories={setAllCategories}
-                  categoriesLoading={categoriesLoading}
-                  setCategoriesLoading={setCategoriesLoading}
-                />
-              </DrawerContent>
-            </Drawer>
-          )}
-
-          <Button
-            onClick={() => navigate("/create")}
-            className="w-full sm:w-auto"
-          >
-            <PlusCircle className="mr-2 h-4 w-4" /> Add Product
-          </Button>
-        </div>
-      ) : (
-        <TopSkeleton />
-      )}
-
+        <Button
+          onClick={() => navigate("/create")}
+          className="w-full sm:w-auto"
+        >
+          <PlusCircle className="mr-2 h-4 w-4" /> Add Product
+        </Button>
+      </div>
       <div className="overflow-x-auto">
         {filteredProducts.length > 0 ? (
           <div className="grid">
             <Table>
               <TableHeader>
                 <TableRow className="whitespace-nowrap">
-                  <TableHead className="w-[200px]">Name</TableHead>
+                  <TableHead>Image</TableHead>
+                  <TableHead>Name</TableHead>
                   <TableHead>Category</TableHead>
                   <TableHead>Price</TableHead>
                   <TableHead>Discount</TableHead>
+                  <TableHead></TableHead>
+                  <TableHead></TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody className="whitespace-nowrap">
                 {filteredProducts.map((product, i) => (
                   <TableRow key={i}>
-                    <TableCell className="font-medium whitespace-nowrap">
+                    <TableCell>
+                      <div className="h-10" style={{ aspectRatio: "3 / 2" }}>
+                        <img
+                          src={product.imageUrl}
+                          alt={product.name}
+                          className="h-10 object-cover rounded"
+                          style={{ aspectRatio: "3 / 2" }}
+                        />
+                      </div>
+                    </TableCell>
+                    <TableCell className="font-medium whitespace-nowrap min-w-[200px]">
                       {product.name}
                     </TableCell>
                     <TableCell>{product.category}</TableCell>
