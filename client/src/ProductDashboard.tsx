@@ -56,19 +56,19 @@ const RowsSkeleton = () => (
           <Skeleton className="h-10 rounded" style={{ aspectRatio: "3 / 2" }} />
         </TableCell>
         <TableCell>
-          <Skeleton className="h-4 w-[200px]" />
+          <Skeleton className="h-4 w-full max-w-[200px]" />
         </TableCell>
         <TableCell>
-          <Skeleton className="h-4 w-full min-w-[79px] max-w-[177px]" />
+          <Skeleton className="h-4 w-full min-w-[60px] max-w-[177px]" />
         </TableCell>
         <TableCell>
-          <Skeleton className="h-4 w-full min-w-[67px] max-w-[130px]" />
+          <Skeleton className="h-4 w-full min-w-[50px] max-w-[130px]" />
         </TableCell>
         <TableCell>
-          <Skeleton className="h-4 w-full min-w-[75px] max-w-[170px]" />
+          <Skeleton className="h-4 w-full min-w-[50px] max-w-[170px]" />
         </TableCell>
         <TableCell>
-          <Skeleton className="h-6 w-full min-w-[110px] max-w-[190px]" />
+          <Skeleton className="h-6 w-full min-w-[60px] max-w-[190px]" />
         </TableCell>
         <TableCell className="text-right">
           <div className="flex justify-end space-x-2">
