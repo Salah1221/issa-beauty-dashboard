@@ -344,7 +344,7 @@ const ProductDashboard: React.FC = () => {
                           : "Out of Stock"}
                       </Badge>
                     </TableCell>
-                    <TableCell className="flex justify-end items-start">
+                    <TableCell align="right">
                       <Button
                         variant="ghost"
                         size="sm"
