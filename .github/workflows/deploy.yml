@@ -61,7 +61,7 @@ jobs:
             cd /var/www/issa-beauty-dashboard
 
             # Install strictly what is needed to run the backend on the server's OS architecture
-            pnpm install --prod
+            /root/.local/share/pnpm/pnpm install --prod
 
             # Restart or start the PM2 process, forcing it to pick up the new .env variables
             pm2 restart issa-beauty-dashboard --update-env || NODE_ENV=production pm2 start server/index.js --name "issa-beauty-dashboard"
