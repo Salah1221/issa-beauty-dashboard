@@ -40,6 +40,13 @@ jobs:
           IMAGEKIT_URL_ENDPOINT=${{ secrets.IMAGEKIT_URL_ENDPOINT }}
           EOF
 
+      - name: Create .env file for Client
+        working-directory: ./client
+        run: |
+          cat <<EOF > .env
+          PORT=${{ secrets.PORT }}
+          EOF
+
       - name: Deploy with rsync
         uses: burnett01/rsync-deployments@5.2
         with:
