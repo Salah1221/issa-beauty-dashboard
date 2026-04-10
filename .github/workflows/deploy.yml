@@ -17,12 +17,12 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: "20" # Change if your project requires a different version
+          node-version: "22" # Change if your project requires a different version
 
       - name: Setup pnpm
         uses: pnpm/action-setup@v3
         with:
-          version: 8
+          version: 10
 
       - name: Install dependencies and Build
         # This builds your app on GitHub's powerful servers, saving your VPS RAM
