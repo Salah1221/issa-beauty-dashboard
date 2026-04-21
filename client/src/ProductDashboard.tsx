@@ -123,9 +123,15 @@ const ProductDashboard: React.FC = () => {
   const deleteProduct: DeleteProductFunction = async (id) => {
     setDeleteLoading(true);
     try {
-      const response = await axios.delete(`/api/products/${id}`);
+      const response = await axios.delete(`/api/products/${id}`, {
+        params: {
+          page,
+          limit: 12,
+        },
+      });
       const data = response.data;
       if (!data.success) throw new Error("Error in server");
+      setProducts(data.data);
       setDeleteLoading(false);
     } catch (err) {
       console.error(err);
@@ -150,7 +156,7 @@ const ProductDashboard: React.FC = () => {
         if (fetchId === fetchIdRef.current) {
           setLoading(false);
           setProducts((prevProducts) =>
-            page === 1 ? data.data : [...prevProducts, ...data.data]
+            page === 1 ? data.data : [...prevProducts, ...data.data],
           );
           setTotalPages(data.pages);
         }
@@ -160,7 +166,7 @@ const ProductDashboard: React.FC = () => {
         setPage(1);
       }
     },
-    [searchTerm, categoryFilter, sortOrder]
+    [searchTerm, categoryFilter, sortOrder],
   );
 
   useEffect(() => {
@@ -181,7 +187,7 @@ const ProductDashboard: React.FC = () => {
       }
       setCategoriesLoading(false);
     });
-  }, [allCategories]);
+  }, []);
 
   const handleSearch = (event: React.ChangeEvent<HTMLInputElement>) => {
     setSearchTerm(event.target.value);
@@ -198,7 +204,6 @@ const ProductDashboard: React.FC = () => {
   const handleDelete = async (id: string) => {
     setDeletedId(id);
     await deleteProduct(id);
-    setProducts(products.filter((p) => p._id !== id));
   };
 
   const filteredProducts = products.sort((a, b) => {

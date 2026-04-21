@@ -72,14 +72,14 @@ app.get("/api/products", async (req, res) => {
       .skip(skip)
       .limit(limit);
     const total = await Product.countDocuments(query);
-    changeOrigin: true,
+    changeOrigin: (true,
       res.status(200).json({
         success: true,
         data: products,
         total,
         page,
         pages: Math.ceil(total / limit),
-      });
+      }));
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });
   }
@@ -171,8 +171,10 @@ const deleteImage = async (fileId) => {
   try {
     const result = await imagekit.deleteFile(fileId);
     console.log("Image deleted successfully:", result);
+    return true;
   } catch (err) {
     console.error("Error deleting image:", err);
+    return false;
   }
 };
 
@@ -266,10 +268,16 @@ app.put("/api/products/:id", upload.single("image"), async (req, res) => {
 app.delete("/api/products/:id", async (req, res) => {
   try {
     const product = await deleteProduct(req.params.id);
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 20;
+    const skip = (page - 1) * limit;
 
-    if (product.imageFileId) await deleteImage(product.imageFileId);
+    if (product.imageFileId) {
+      await deleteImage(product.imageFileId);
+    }
 
-    res.status(200).json({ success: true, data: product });
+    const data = await Product.find().skip(skip).limit(limit);
+    res.status(200).json({ success: true, data: data });
   } catch (err) {
     res.status(404).json({ success: false, message: err.message });
   }
