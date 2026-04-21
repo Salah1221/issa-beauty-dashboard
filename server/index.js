@@ -271,12 +271,37 @@ app.delete("/api/products/:id", async (req, res) => {
     const page = parseInt(req.query.page) || 1;
     const limit = parseInt(req.query.limit) || 20;
     const skip = (page - 1) * limit;
+    const search = req.query.search || "";
+    const category = req.query.category || "";
+    const sortOrder = req.query.sort || "newest";
 
     if (product.imageFileId) {
       await deleteImage(product.imageFileId);
     }
 
-    const data = await Product.find().skip(skip).limit(limit);
+    // Build the same query as the GET endpoint
+    let query = {};
+    if (search) {
+      query = {
+        $or: [
+          { name: { $regex: search, $options: "i" } },
+          { description: { $regex: search, $options: "i" } },
+          { category: { $regex: search, $options: "i" } },
+        ],
+      };
+    }
+
+    if (category && category !== "all") {
+      query.category = category;
+    }
+
+    let sort = { createdAt: -1 }; // Default to newest first
+    if (sortOrder === "oldest") {
+      sort = { createdAt: 1 };
+    }
+
+    const data = await Product.find(query).sort(sort).skip(skip).limit(limit);
+
     res.status(200).json({ success: true, data: data });
   } catch (err) {
     res.status(404).json({ success: false, message: err.message });

@@ -23,6 +23,8 @@ import {
   Trash2,
   Loader2,
   TableOfContents,
+  ChevronLeft,
+  ChevronRight,
 } from "lucide-react";
 import axios from "axios";
 import { Category, Product } from "./types";
@@ -117,8 +119,30 @@ const ProductDashboard: React.FC = () => {
   const [totalPages, setTotalPages] = useState(1);
   const [deletedId, setDeletedId] = useState("");
   const [categoriesLoading, setCategoriesLoading] = useState(true);
+  const abortControllerRef = React.useRef<AbortController | null>(null);
   const navigate = useNavigate();
   const mobile = useMediaQuery("(max-width: 640px)");
+
+  // Custom setPage function that cancels ongoing requests
+  const handlePageChange = useCallback(
+    (newPage: number | ((prev: number) => number)) => {
+      // Cancel any ongoing request
+      if (abortControllerRef.current) {
+        abortControllerRef.current.abort();
+      }
+      setPage(newPage);
+    },
+    [],
+  );
+
+  // Cleanup: cancel any ongoing requests when component unmounts
+  useEffect(() => {
+    return () => {
+      if (abortControllerRef.current) {
+        abortControllerRef.current.abort();
+      }
+    };
+  }, []);
 
   const deleteProduct: DeleteProductFunction = async (id) => {
     setDeleteLoading(true);
@@ -139,6 +163,15 @@ const ProductDashboard: React.FC = () => {
   };
   const fetchProducts: FetchProductsFunction = useCallback(
     async (page: number) => {
+      // Cancel any ongoing request
+      if (abortControllerRef.current) {
+        abortControllerRef.current.abort();
+      }
+
+      // Create new abort controller for this request
+      abortControllerRef.current = new AbortController();
+      const signal = abortControllerRef.current.signal;
+
       const fetchId = ++fetchIdRef.current;
       setLoading(true);
       try {
@@ -150,23 +183,28 @@ const ProductDashboard: React.FC = () => {
             category: categoryFilter !== "all" ? categoryFilter : undefined,
             sort: sortOrder,
           },
+          signal, // Pass the abort signal to axios
         });
         const data = response.data;
         if (!data.success) throw new Error("Error in server");
-        if (fetchId === fetchIdRef.current) {
+        if (fetchId === fetchIdRef.current && !signal.aborted) {
           setLoading(false);
-          setProducts((prevProducts) =>
-            page === 1 ? data.data : [...prevProducts, ...data.data],
-          );
+          setProducts(data.data);
           setTotalPages(data.pages);
         }
       } catch (error) {
+        if (error instanceof Error && error.name === "AbortError") {
+          // Request was cancelled, don't update state
+          return;
+        }
         console.error("Error fetching products:", error);
-        setProducts([]);
-        setPage(1);
+        if (!signal.aborted) {
+          setProducts([]);
+          handlePageChange(1);
+        }
       }
     },
-    [searchTerm, categoryFilter, sortOrder],
+    [searchTerm, categoryFilter, sortOrder, handlePageChange],
   );
 
   useEffect(() => {
@@ -174,10 +212,14 @@ const ProductDashboard: React.FC = () => {
   }, [fetchProducts, page]);
 
   useEffect(() => {
+    // Cancel any ongoing request when filters change
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+    }
     setProducts([]);
-    setPage(1);
+    handlePageChange(1);
     fetchProducts(1);
-  }, [fetchProducts, searchTerm, categoryFilter, sortOrder]);
+  }, [fetchProducts, searchTerm, categoryFilter, sortOrder, handlePageChange]);
 
   useEffect(() => {
     axios.get("/api/categories").then((response) => {
@@ -204,15 +246,11 @@ const ProductDashboard: React.FC = () => {
   const handleDelete = async (id: string) => {
     setDeletedId(id);
     await deleteProduct(id);
+    // Refetch current page to maintain consistent pagination
+    fetchProducts(page);
   };
 
-  const filteredProducts = products.sort((a, b) => {
-    if (sortOrder === "newest") {
-      return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
-    } else {
-      return new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
-    }
-  });
+  const filteredProducts = products;
 
   return (
     <div className="p-5 sm:p-6 md:p-8 max-w-7xl mx-auto">
@@ -297,101 +335,189 @@ const ProductDashboard: React.FC = () => {
         </Button>
       </div>
       <div className="overflow-x-auto">
-        {filteredProducts.length > 0 ? (
-          <div className="grid">
-            <Table>
-              <TableHeader>
-                <TableRow className="whitespace-nowrap">
-                  <TableHead>Image</TableHead>
-                  <TableHead>Name</TableHead>
-                  <TableHead>Category</TableHead>
-                  <TableHead>Price</TableHead>
-                  <TableHead>Discount</TableHead>
-                  <TableHead></TableHead>
-                  <TableHead></TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody className="whitespace-nowrap">
-                {filteredProducts.map((product, i) => (
-                  <TableRow key={i}>
-                    <TableCell>
-                      <div className="h-10" style={{ aspectRatio: "3 / 2" }}>
-                        <img
-                          src={product.imageUrl}
-                          alt={product.name}
-                          className="h-10 object-cover rounded"
-                          style={{ aspectRatio: "3 / 2" }}
-                        />
-                      </div>
-                    </TableCell>
-                    <TableCell className="font-medium whitespace-nowrap min-w-[200px]">
-                      {product.name}
-                    </TableCell>
-                    <TableCell>{product.category}</TableCell>
-                    <TableCell>${product.price.toFixed(2)}</TableCell>
-                    {product.discountPercentage &&
-                    product.discountPercentage > 0 ? (
-                      <TableCell>{product.discountPercentage}%</TableCell>
-                    ) : (
-                      <TableCell>--</TableCell>
-                    )}
-                    <TableCell>
-                      <Badge
-                        className="whitespace-nowrap"
-                        variant={
-                          product.in_stock === undefined || product.in_stock
-                            ? "default"
-                            : "destructive"
-                        }
-                      >
-                        {product.in_stock === undefined || product.in_stock
-                          ? "In Stock"
-                          : "Out of Stock"}
-                      </Badge>
-                    </TableCell>
-                    <TableCell align="right">
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => navigate(`/create?id=${product._id}`)}
-                      >
-                        <Pencil className="h-4 w-4" />
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => handleDelete(product._id)}
-                        disabled={deleteLoading && product._id === deletedId}
-                      >
-                        {!deleteLoading || product._id !== deletedId ? (
-                          <Trash2 className="h-4 w-4" />
-                        ) : (
-                          <Loader2 className="h-4 w-4 animate-spin" />
-                        )}
-                      </Button>
-                    </TableCell>
-                  </TableRow>
-                ))}
-                {loading && <RowsSkeleton />}
-              </TableBody>
-            </Table>
-            {page < totalPages && (
-              <Button
-                className="justify-self-center mt-3"
-                onClick={() => setPage((p) => p + 1)}
-              >
-                Load more
-              </Button>
-            )}
-          </div>
-        ) : loading ? (
+        {loading ? (
           <TableSkeleton />
+        ) : filteredProducts.length > 0 ? (
+          <Table>
+            <TableHeader>
+              <TableRow className="whitespace-nowrap">
+                <TableHead>Image</TableHead>
+                <TableHead>Name</TableHead>
+                <TableHead>Category</TableHead>
+                <TableHead>Price</TableHead>
+                <TableHead>Discount</TableHead>
+                <TableHead></TableHead>
+                <TableHead></TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody className="whitespace-nowrap">
+              {filteredProducts.map((product, i) => (
+                <TableRow key={i}>
+                  <TableCell>
+                    <div className="h-10" style={{ aspectRatio: "3 / 2" }}>
+                      <img
+                        src={product.imageUrl}
+                        alt={product.name}
+                        className="h-10 object-cover rounded"
+                        style={{ aspectRatio: "3 / 2" }}
+                      />
+                    </div>
+                  </TableCell>
+                  <TableCell className="font-medium whitespace-nowrap min-w-[200px]">
+                    {product.name}
+                  </TableCell>
+                  <TableCell>{product.category}</TableCell>
+                  <TableCell>${product.price.toFixed(2)}</TableCell>
+                  {product.discountPercentage &&
+                  product.discountPercentage > 0 ? (
+                    <TableCell>{product.discountPercentage}%</TableCell>
+                  ) : (
+                    <TableCell>--</TableCell>
+                  )}
+                  <TableCell>
+                    <Badge
+                      className="whitespace-nowrap"
+                      variant={
+                        product.in_stock === undefined || product.in_stock
+                          ? "default"
+                          : "destructive"
+                      }
+                    >
+                      {product.in_stock === undefined || product.in_stock
+                        ? "In Stock"
+                        : "Out of Stock"}
+                    </Badge>
+                  </TableCell>
+                  <TableCell align="right">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => navigate(`/create?id=${product._id}`)}
+                    >
+                      <Pencil className="h-4 w-4" />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => handleDelete(product._id)}
+                      disabled={deleteLoading && product._id === deletedId}
+                    >
+                      {!deleteLoading || product._id !== deletedId ? (
+                        <Trash2 className="h-4 w-4" />
+                      ) : (
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                      )}
+                    </Button>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
         ) : (
           <p className="text-muted-foreground font-bold text-3xl mt-5">
             No Products
           </p>
         )}
       </div>
+
+      {/* Pagination Controls - Always visible when multiple pages exist */}
+      {totalPages > 1 && (
+        <div
+          className={`mt-6 ${mobile ? "flex flex-col space-y-3" : "flex items-center justify-between"}`}
+        >
+          <div
+            className={`text-sm text-muted-foreground ${mobile ? "text-center" : ""}`}
+          >
+            Page {page} of {totalPages}
+          </div>
+          <div
+            className={`flex items-center ${mobile ? "justify-center space-x-1" : "space-x-2"}`}
+          >
+            {!mobile && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => handlePageChange(1)}
+                disabled={page === 1}
+              >
+                First
+              </Button>
+            )}
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => handlePageChange((p) => Math.max(1, p - 1))}
+              disabled={page === 1}
+            >
+              {mobile ? (
+                <ChevronLeft className="h-4 w-4" />
+              ) : (
+                <>
+                  <ChevronLeft className="h-4 w-4" />
+                  {!mobile && "Previous"}
+                </>
+              )}
+            </Button>
+
+            {/* Page Numbers - Show fewer on mobile */}
+            <div className="flex items-center space-x-1">
+              {Array.from(
+                { length: Math.min(mobile ? 3 : 5, totalPages) },
+                (_, i) => {
+                  const pageNum =
+                    Math.max(
+                      1,
+                      Math.min(
+                        totalPages - (mobile ? 2 : 4),
+                        page - (mobile ? 1 : 2),
+                      ),
+                    ) + i;
+                  if (pageNum > totalPages) return null;
+                  return (
+                    <Button
+                      key={pageNum}
+                      variant={pageNum === page ? "default" : "outline"}
+                      size="sm"
+                      onClick={() => handlePageChange(pageNum)}
+                      className={`${mobile ? "w-7 h-7 text-xs" : "w-8 h-8"} p-0`}
+                    >
+                      {pageNum}
+                    </Button>
+                  );
+                },
+              )}
+            </div>
+
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() =>
+                handlePageChange((p) => Math.min(totalPages, p + 1))
+              }
+              disabled={page === totalPages}
+            >
+              {mobile ? (
+                <ChevronRight className="h-4 w-4" />
+              ) : (
+                <>
+                  {!mobile && "Next"}
+                  <ChevronRight className="h-4 w-4" />
+                </>
+              )}
+            </Button>
+            {!mobile && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => handlePageChange(totalPages)}
+                disabled={page === totalPages}
+              >
+                Last
+              </Button>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 };
