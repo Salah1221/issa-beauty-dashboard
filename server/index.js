@@ -31,6 +31,19 @@ const imagekit = new ImageKit({
 
 const upload = multer();
 
+// Compress images on upload so ImageKit stores an already-optimized original.
+// `c-at_max` fits the image within the box without cropping, capping the
+// longest side; q-80 keeps quality high while cutting file size dramatically.
+const PRODUCT_IMAGE_TR = "w-1600,h-1600,c-at_max,q-80";
+const BANNER_IMAGE_TR = "w-2000,h-2000,c-at_max,q-80";
+
+const uploadImage = (buffer, fileName, pre) =>
+  imagekit.upload({
+    file: buffer,
+    fileName,
+    transformation: { pre },
+  });
+
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
@@ -194,10 +207,11 @@ app.post("/api/products", upload.single("image"), async (req, res) => {
     let fileId;
 
     if (imageFile) {
-      const result = await imagekit.upload({
-        file: imageFile.buffer,
-        fileName: `${name}-${Date.now()}`,
-      });
+      const result = await uploadImage(
+        imageFile.buffer,
+        `${name}-${Date.now()}`,
+        PRODUCT_IMAGE_TR
+      );
       imageUrl = result.url;
       fileId = result.fileId;
     }
@@ -242,10 +256,11 @@ app.put("/api/products/:id", upload.single("image"), async (req, res) => {
         await deleteImage(product.imageFileId);
       }
 
-      const result = await imagekit.upload({
-        file: imageFile.buffer,
-        fileName: `${name}-${Date.now()}`,
-      });
+      const result = await uploadImage(
+        imageFile.buffer,
+        `${name}-${Date.now()}`,
+        PRODUCT_IMAGE_TR
+      );
 
       product.imageUrl = result.url;
       product.imageFileId = result.fileId;
@@ -325,10 +340,11 @@ app.post("/api/banner-images", upload.single("image"), async (req, res) => {
     let fileId;
 
     if (imageFile) {
-      const result = await imagekit.upload({
-        file: imageFile.buffer,
-        fileName: `banner-${Date.now()}`,
-      });
+      const result = await uploadImage(
+        imageFile.buffer,
+        `banner-${Date.now()}`,
+        BANNER_IMAGE_TR
+      );
       imageUrl = result.url;
       fileId = result.fileId;
     }
