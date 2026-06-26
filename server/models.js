@@ -73,10 +73,23 @@ const bannerImgSchema = new Schema(
   }
 );
 
-// Create models for Product and Category
+const adminAuthSchema = new Schema(
+  {
+    passwordHash: {
+      type: String,
+      required: true,
+    },
+  },
+  {
+    timestamps: true,
+  }
+);
+
+// Create models
 const Product = model("Product", productSchema);
 const Category = model("Category", categorySchema);
 const BannerImg = model("BannerImg", bannerImgSchema, "bannerImages");
+const AdminAuth = model("AdminAuth", adminAuthSchema, "adminAuth");
 
 // Export the models
-export { Product, Category, BannerImg };
+export { Product, Category, BannerImg, AdminAuth };

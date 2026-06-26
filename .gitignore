@@ -16,6 +16,9 @@ dist
 dist-ssr
 *.local
 
+# Superpowers specs and plans (local only)
+docs/superpowers/
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
