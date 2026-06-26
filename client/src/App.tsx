@@ -3,6 +3,8 @@ import ErrorPage from "./ErrorPage";
 import Navbar from "./Navbar";
 import ProductCreate from "./ProductCreate";
 import ProductDashboard from "./ProductDashboard";
+import Login from "./Login";
+import RequireAuth from "./RequireAuth";
 import { createBrowserRouter, Outlet, RouterProvider } from "react-router-dom";
 
 const Layout: React.FC = () => {
@@ -17,17 +19,27 @@ const Layout: React.FC = () => {
 
 const router = createBrowserRouter([
   {
+    path: "/login",
+    element: <Login />,
+    errorElement: <ErrorPage />,
+  },
+  {
     path: "/",
-    element: <Layout />,
+    element: <RequireAuth />,
     errorElement: <ErrorPage />,
     children: [
       {
-        index: true,
-        element: <ProductDashboard />,
-      },
-      {
-        path: "create",
-        element: <ProductCreate />,
+        element: <Layout />,
+        children: [
+          {
+            index: true,
+            element: <ProductDashboard />,
+          },
+          {
+            path: "create",
+            element: <ProductCreate />,
+          },
+        ],
       },
     ],
   },

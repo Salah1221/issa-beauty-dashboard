@@ -1,12 +1,31 @@
 import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { Moon, Sun } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Moon, Sun, LogOut, KeyRound, Loader2 } from "lucide-react";
+import { Link, useNavigate } from "react-router-dom";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { toast } from "sonner";
+import { logout, changePassword } from "./lib/auth";
 
 const Navbar: React.FC = () => {
   const [theme, setTheme] = useState<"light" | "dark">("light");
   const [mounted, setMounted] = useState(false);
   const themeColorMetaTag = document.querySelector('meta[name="theme-color"]');
+
+  const navigate = useNavigate();
+  const [current, setCurrent] = useState("");
+  const [next, setNext] = useState("");
+  const [saving, setSaving] = useState(false);
+  const [open, setOpen] = useState(false);
 
   useEffect(() => {
     setMounted(true);
@@ -32,10 +51,37 @@ const Navbar: React.FC = () => {
     localStorage.setItem("theme", newTheme);
   };
 
+  const handleLogout = async () => {
+    try {
+      await logout();
+    } finally {
+      navigate("/login");
+    }
+  };
+
+  const handleChangePassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setSaving(true);
+    try {
+      await changePassword(current, next);
+      toast.success("Password changed");
+      setCurrent("");
+      setNext("");
+      setOpen(false);
+    } catch (err) {
+      const message =
+        (err as { response?: { data?: { message?: string } } })?.response?.data
+          ?.message ?? "Could not change password";
+      toast.error(message);
+    } finally {
+      setSaving(false);
+    }
+  };
+
   return (
     <nav className="border-b">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-16">
+        <div className="flex items-center justify-between h-16 gap-2">
           <Link
             to={"/"}
             className="flex-shrink-0 flex items-center gap-3"
@@ -59,13 +105,13 @@ const Navbar: React.FC = () => {
             </svg>
             <div className="font-bold text-xl">Dashboard</div>
           </Link>
-          <div className="flex items-center space-x-2 md:space-x-4 flex-grow justify-end">
+          <div className="flex items-center gap-1 sm:gap-2">
             {mounted && (
               <Button
                 variant="ghost"
                 size="icon"
                 onClick={toggleTheme}
-                className="ml-2 md:ml-4"
+                className="h-11 w-11"
               >
                 {theme === "light" ? (
                   <Moon className="h-5 w-5" />
@@ -75,6 +121,71 @@ const Navbar: React.FC = () => {
                 <span className="sr-only">Toggle theme</span>
               </Button>
             )}
+            <Dialog open={open} onOpenChange={setOpen}>
+              <DialogTrigger asChild>
+                <Button
+                  variant="ghost"
+                  className="h-11 w-11 px-0 sm:w-auto sm:px-4"
+                >
+                  <KeyRound className="h-5 w-5 sm:mr-2" />
+                  <span className="hidden sm:inline">Change password</span>
+                  <span className="sr-only">Change password</span>
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="sm:max-w-sm">
+                <DialogHeader>
+                  <DialogTitle>Change password</DialogTitle>
+                  <DialogDescription>
+                    Update the dashboard password.
+                  </DialogDescription>
+                </DialogHeader>
+                <form onSubmit={handleChangePassword} className="space-y-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="current">Current password</Label>
+                    <Input
+                      id="current"
+                      type="password"
+                      autoComplete="current-password"
+                      className="h-11"
+                      value={current}
+                      onChange={(e) => setCurrent(e.target.value)}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="new">New password</Label>
+                    <Input
+                      id="new"
+                      type="password"
+                      autoComplete="new-password"
+                      className="h-11"
+                      value={next}
+                      onChange={(e) => setNext(e.target.value)}
+                    />
+                  </div>
+                  <DialogFooter>
+                    <Button
+                      type="submit"
+                      disabled={saving}
+                      className="h-11 w-full"
+                    >
+                      {saving && (
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      )}
+                      Save
+                    </Button>
+                  </DialogFooter>
+                </form>
+              </DialogContent>
+            </Dialog>
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={handleLogout}
+              className="h-11 w-11"
+            >
+              <LogOut className="h-5 w-5" />
+              <span className="sr-only">Log out</span>
+            </Button>
           </div>
         </div>
       </div>
