@@ -85,7 +85,7 @@ const adminAuthSchema = new Schema(
   }
 );
 
-// Create models for Product and Category
+// Create models
 const Product = model("Product", productSchema);
 const Category = model("Category", categorySchema);
 const BannerImg = model("BannerImg", bannerImgSchema, "bannerImages");

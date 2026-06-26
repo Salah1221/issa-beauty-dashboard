@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeAll, afterAll, beforeEach } from "vitest";
+import { describe, it, expect, beforeAll, afterAll, beforeEach, afterEach } from "vitest";
 import mongoose from "mongoose";
 import { MongoMemoryServer } from "mongodb-memory-server";
 import { AdminAuth } from "./models.js";
@@ -19,6 +19,10 @@ afterAll(async () => {
 
 beforeEach(async () => {
   await AdminAuth.deleteMany({});
+});
+
+afterEach(() => {
+  delete process.env.INITIAL_DASHBOARD_PASSWORD;
 });
 
 describe("ensureAdminAuth", () => {
