@@ -70,8 +70,13 @@ const cookieOptions = {
 app.post("/api/auth/login", async (req, res) => {
   try {
     const { password } = req.body;
+    if (typeof password !== "string") {
+      return res
+        .status(401)
+        .json({ success: false, message: "Incorrect password" });
+    }
     const auth = await AdminAuth.findOne();
-    if (!auth || !(await verifyPassword(password || "", auth.passwordHash))) {
+    if (!auth || !(await verifyPassword(password, auth.passwordHash))) {
       return res
         .status(401)
         .json({ success: false, message: "Incorrect password" });
@@ -102,13 +107,18 @@ app.post("/api/auth/logout", (req, res) => {
 app.put("/api/auth/password", async (req, res) => {
   try {
     const { currentPassword, newPassword } = req.body;
-    if (!newPassword || newPassword.length < 4) {
+    if (typeof currentPassword !== "string" || typeof newPassword !== "string") {
+      return res
+        .status(400)
+        .json({ success: false, message: "Invalid request" });
+    }
+    if (newPassword.length < 4) {
       return res
         .status(400)
         .json({ success: false, message: "New password must be at least 4 characters" });
     }
     const auth = await AdminAuth.findOne();
-    if (!auth || !(await verifyPassword(currentPassword || "", auth.passwordHash))) {
+    if (!auth || !(await verifyPassword(currentPassword, auth.passwordHash))) {
       return res
         .status(401)
         .json({ success: false, message: "Current password is incorrect" });
