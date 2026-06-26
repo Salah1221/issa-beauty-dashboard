@@ -34,7 +34,7 @@ const Login: React.FC = () => {
   };
 
   return (
-    <div className="flex min-h-svh items-center justify-center overflow-hidden bg-background p-4">
+    <div className="flex min-h-svh items-center justify-center overflow-x-hidden bg-background p-4">
       <Card className="w-full max-w-sm overflow-hidden">
         <CardHeader className="text-center">
           <CardTitle className="text-2xl font-semibold tracking-tight">
@@ -52,6 +52,7 @@ const Login: React.FC = () => {
                 autoFocus
                 autoComplete="current-password"
                 className="h-11 w-full"
+                required
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
               />
