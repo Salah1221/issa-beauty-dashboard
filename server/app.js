@@ -68,15 +68,19 @@ const cookieOptions = {
 
 // --- Auth: login is the ONLY unauthenticated /api route ---
 app.post("/api/auth/login", async (req, res) => {
-  const { password } = req.body;
-  const auth = await AdminAuth.findOne();
-  if (!auth || !(await verifyPassword(password || "", auth.passwordHash))) {
-    return res
-      .status(401)
-      .json({ success: false, message: "Incorrect password" });
+  try {
+    const { password } = req.body;
+    const auth = await AdminAuth.findOne();
+    if (!auth || !(await verifyPassword(password || "", auth.passwordHash))) {
+      return res
+        .status(401)
+        .json({ success: false, message: "Incorrect password" });
+    }
+    res.cookie(COOKIE_NAME, signToken(), cookieOptions);
+    res.status(200).json({ success: true });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
   }
-  res.cookie(COOKIE_NAME, signToken(), cookieOptions);
-  res.status(200).json({ success: true });
 });
 
 // Everything below this line requires a valid session cookie.
@@ -96,21 +100,25 @@ app.post("/api/auth/logout", (req, res) => {
 });
 
 app.put("/api/auth/password", async (req, res) => {
-  const { currentPassword, newPassword } = req.body;
-  if (!newPassword || newPassword.length < 4) {
-    return res
-      .status(400)
-      .json({ success: false, message: "New password must be at least 4 characters" });
+  try {
+    const { currentPassword, newPassword } = req.body;
+    if (!newPassword || newPassword.length < 4) {
+      return res
+        .status(400)
+        .json({ success: false, message: "New password must be at least 4 characters" });
+    }
+    const auth = await AdminAuth.findOne();
+    if (!auth || !(await verifyPassword(currentPassword || "", auth.passwordHash))) {
+      return res
+        .status(401)
+        .json({ success: false, message: "Current password is incorrect" });
+    }
+    auth.passwordHash = await hashPassword(newPassword);
+    await auth.save();
+    res.status(200).json({ success: true });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
   }
-  const auth = await AdminAuth.findOne();
-  if (!auth || !(await verifyPassword(currentPassword || "", auth.passwordHash))) {
-    return res
-      .status(401)
-      .json({ success: false, message: "Current password is incorrect" });
-  }
-  auth.passwordHash = await hashPassword(newPassword);
-  await auth.save();
-  res.status(200).json({ success: true });
 });
 
 app.get("/api/products", async (req, res) => {

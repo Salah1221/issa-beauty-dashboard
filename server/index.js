@@ -5,6 +5,11 @@ import { ensureAdminAuth } from "./bootstrapAuth.js";
 
 dotenv.config();
 
+if (!process.env.JWT_SECRET) {
+  console.error("FATAL: JWT_SECRET is not set. Refusing to start.");
+  process.exit(1);
+}
+
 const PORT = process.env.PORT || 5000;
 
 app.listen(PORT, async () => {
