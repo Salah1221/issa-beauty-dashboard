@@ -35,6 +35,9 @@ jobs:
           cat <<EOF > .env
           PORT=${{ secrets.PORT }}
           MONGODB_URI=${{ secrets.MONGODB_URI }}
+          JWT_SECRET=${{ secrets.JWT_SECRET }}
+          INITIAL_DASHBOARD_PASSWORD=${{ secrets.INITIAL_DASHBOARD_PASSWORD }}
+          NODE_ENV=production
           IMAGEKIT_PUBLIC_KEY=${{ secrets.IMAGEKIT_PUBLIC_KEY }}
           IMAGEKIT_PRIVATE_KEY=${{ secrets.IMAGEKIT_PRIVATE_KEY }}
           IMAGEKIT_URL_ENDPOINT=${{ secrets.IMAGEKIT_URL_ENDPOINT }}
