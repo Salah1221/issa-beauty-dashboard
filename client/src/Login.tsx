@@ -8,10 +8,10 @@ import {
   CardContent,
   CardDescription,
   CardHeader,
-  CardTitle,
 } from "@/components/ui/card";
 import { Loader2 } from "lucide-react";
 import { login } from "./lib/auth";
+import Logo from "./components/Logo";
 
 const Login: React.FC = () => {
   const navigate = useNavigate();
@@ -37,9 +37,9 @@ const Login: React.FC = () => {
     <div className="flex min-h-svh items-center justify-center overflow-x-hidden bg-background p-4">
       <Card className="w-full max-w-sm overflow-hidden">
         <CardHeader className="text-center">
-          <CardTitle className="text-2xl font-semibold tracking-tight">
-            issa beauty
-          </CardTitle>
+          <div className="flex justify-center mb-2">
+            <Logo />
+          </div>
           <CardDescription>Sign in to manage your products</CardDescription>
         </CardHeader>
         <CardContent>
