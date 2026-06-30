@@ -133,27 +133,33 @@ const Navbar: React.FC = () => {
 
           {/* Desktop nav */}
           <div className="hidden sm:flex items-center gap-1">
-            <Button
-              variant="ghost"
-              asChild
-              className={`h-11 px-3 ${isActive("/") ? "bg-accent" : ""}`}
+            <Link
+              to="/"
+              aria-current={isActive("/") ? "page" : undefined}
+              className={`relative h-11 px-3 inline-flex items-center text-sm font-medium transition-colors rounded-md
+                ${isActive("/")
+                  ? "text-foreground font-semibold after:absolute after:inset-x-3 after:-bottom-px after:h-0.5 after:rounded-full after:bg-primary"
+                  : "text-muted-foreground hover:text-foreground hover:bg-transparent"
+                }`}
             >
-              <Link to="/">Products</Link>
-            </Button>
-            <Button
-              variant="ghost"
-              asChild
-              className={`h-11 px-3 ${isActive("/orders") ? "bg-accent" : ""}`}
+              Products
+            </Link>
+            <Link
+              to="/orders"
+              aria-current={isActive("/orders") ? "page" : undefined}
+              className={`relative h-11 px-3 inline-flex items-center gap-2 text-sm font-medium transition-colors rounded-md
+                ${isActive("/orders")
+                  ? "text-foreground font-semibold after:absolute after:inset-x-3 after:-bottom-px after:h-0.5 after:rounded-full after:bg-primary"
+                  : "text-muted-foreground hover:text-foreground hover:bg-transparent"
+                }`}
             >
-              <Link to="/orders" className="relative flex items-center gap-2">
-                Orders
-                {pendingCount > 0 && (
-                  <Badge className="px-1.5 py-0 text-[10px]">
-                    {pendingCount}
-                  </Badge>
-                )}
-              </Link>
-            </Button>
+              Orders
+              {pendingCount > 0 && (
+                <Badge className="px-1.5 py-0 text-[10px]">
+                  {pendingCount}
+                </Badge>
+              )}
+            </Link>
           </div>
 
           {/* Desktop secondary actions */}
@@ -285,8 +291,11 @@ const Navbar: React.FC = () => {
             <DrawerClose asChild>
               <Link
                 to="/"
-                className={`flex items-center gap-3 rounded-md px-3 py-3 text-base font-medium transition-colors hover:bg-accent ${
-                  isActive("/") ? "bg-accent" : ""
+                aria-current={isActive("/") ? "page" : undefined}
+                className={`flex items-center gap-3 rounded-md px-3 py-3 text-base transition-colors ${
+                  isActive("/")
+                    ? "bg-accent text-accent-foreground font-medium"
+                    : "font-medium hover:bg-accent/50"
                 }`}
               >
                 <ShoppingBag className="h-5 w-5 text-muted-foreground" />
@@ -296,8 +305,11 @@ const Navbar: React.FC = () => {
             <DrawerClose asChild>
               <Link
                 to="/orders"
-                className={`flex items-center gap-3 rounded-md px-3 py-3 text-base font-medium transition-colors hover:bg-accent ${
-                  isActive("/orders") ? "bg-accent" : ""
+                aria-current={isActive("/orders") ? "page" : undefined}
+                className={`flex items-center gap-3 rounded-md px-3 py-3 text-base transition-colors ${
+                  isActive("/orders")
+                    ? "bg-accent text-accent-foreground font-medium"
+                    : "font-medium hover:bg-accent/50"
                 }`}
               >
                 <ClipboardList className="h-5 w-5 text-muted-foreground" />
