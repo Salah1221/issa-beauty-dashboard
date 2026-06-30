@@ -80,7 +80,7 @@ const Orders: React.FC = () => {
     <div className="p-5 sm:p-6 md:p-8 max-w-7xl mx-auto">
       <h1 className="text-2xl sm:text-3xl font-bold mb-4 sm:mb-6">Orders</h1>
 
-      <div className="mb-4 max-w-[200px]">
+      <div className="mb-4 w-full sm:max-w-[200px]">
         <Select
           value={statusFilter}
           onValueChange={(v) => setStatusFilter(v as "all" | OrderStatus)}

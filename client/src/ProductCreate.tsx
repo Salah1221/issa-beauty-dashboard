@@ -22,7 +22,7 @@ const ProductCreateSkeleton = () => (
   <div className="p-5 sm:p-6 md:p-8 max-w-3xl mx-auto">
     <form className="space-y-4">
       <div className="space-y-2">
-        <Skeleton className="w-[300px] h-[200px] object-cover rounded mx-auto mb-5" />
+        <Skeleton className="w-full max-w-[300px] aspect-[3/2] h-auto rounded mx-auto mb-5" />
         <Skeleton className="mt-5 w-[100px] h-[20px]" />
         <Skeleton className="w-full h-[35px]" />
       </div>
@@ -177,13 +177,13 @@ const ProductCreate: React.FC = () => {
             <img
               src={imageUrl ?? ""}
               alt="Preview"
-              className={`w-[300px] h-[200px] object-cover rounded ${
+              className={`w-full max-w-[300px] h-auto aspect-[3/2] object-cover rounded ${
                 !imageUrl ? "hidden" : ""
               } mx-auto mb-5`}
             />
             {!imageUrl && (
               <div
-                className="w-[300px] h-[200px] grid place-items-center border rounded mx-auto"
+                className="w-full max-w-[300px] aspect-[3/2] h-auto grid place-items-center border rounded mx-auto"
                 style={
                   {
                     marginBottom: "1.25rem",
@@ -284,6 +284,7 @@ const ProductCreate: React.FC = () => {
           <Input
             id="price"
             name="price"
+            inputMode="decimal"
             defaultValue={currentProduct?.price}
             onChange={(e) => {
               if (
@@ -315,6 +316,7 @@ const ProductCreate: React.FC = () => {
           <Input
             id="discountPercentage"
             name="discountPercentage"
+            inputMode="decimal"
             defaultValue={currentProduct?.discountPercentage}
             min={0}
             max={100}
@@ -343,7 +345,7 @@ const ProductCreate: React.FC = () => {
             <p className="text-red-500 text-sm">{errors.discountPercentage}</p>
           )}
         </div>
-        <div className="flex items-center space-x-2">
+        <div className="flex items-center space-x-2 py-2">
           <Switch
             id="in_stock"
             name="in_stock"

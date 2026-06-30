@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { useMediaQuery } from "@react-hookz/web";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -19,7 +20,6 @@ import {
   Dialog,
   DialogContent,
   DialogDescription,
-  DialogFooter,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
@@ -28,6 +28,8 @@ import {
   Drawer,
   DrawerClose,
   DrawerContent,
+  DrawerDescription,
+  DrawerFooter,
   DrawerHeader,
   DrawerTitle,
 } from "@/components/ui/drawer";
@@ -38,7 +40,7 @@ import Logo from "./components/Logo";
 const Navbar: React.FC = () => {
   const [theme, setTheme] = useState<"light" | "dark">("light");
   const [mounted, setMounted] = useState(false);
-  const themeColorMetaTag = document.querySelector('meta[name="theme-color"]');
+  const isDesktop = useMediaQuery("(min-width: 640px)") ?? false;
 
   const navigate = useNavigate();
   const location = useLocation();
@@ -67,24 +69,26 @@ const Navbar: React.FC = () => {
 
   useEffect(() => {
     setMounted(true);
+    const themeColorMetaTag = document.querySelector('meta[name="theme-color"]');
     const savedTheme = localStorage.getItem("theme") as "light" | "dark" | null;
     if (savedTheme) {
       setTheme(savedTheme);
       document.body.classList.toggle("dark", savedTheme === "dark");
       themeColorMetaTag?.setAttribute(
         "content",
-        theme === "dark" ? "#020817" : "#ffffff"
+        savedTheme === "dark" ? "#020817" : "#ffffff"
       );
     }
-  }, [theme, themeColorMetaTag]);
+  }, []);
 
   const toggleTheme = () => {
     const newTheme = theme === "light" ? "dark" : "light";
     setTheme(newTheme);
     document.body.classList.toggle("dark", newTheme === "dark");
+    const themeColorMetaTag = document.querySelector('meta[name="theme-color"]');
     themeColorMetaTag?.setAttribute(
       "content",
-      theme === "dark" ? "#020817" : "#ffffff"
+      newTheme === "dark" ? "#020817" : "#ffffff"
     );
     localStorage.setItem("theme", newTheme);
   };
@@ -117,6 +121,40 @@ const Navbar: React.FC = () => {
   };
 
   const isActive = (path: string) => location.pathname === path;
+
+  // Shared change-password form fields (used in both Dialog and Drawer)
+  const changePasswordForm = (idPrefix: string) => (
+    <form onSubmit={handleChangePassword} className="space-y-4">
+      <div className="space-y-2">
+        <Label htmlFor={`${idPrefix}-current`}>Current password</Label>
+        <Input
+          id={`${idPrefix}-current`}
+          type="password"
+          autoComplete="current-password"
+          className="h-11"
+          required
+          value={current}
+          onChange={(e) => setCurrent(e.target.value)}
+        />
+      </div>
+      <div className="space-y-2">
+        <Label htmlFor={`${idPrefix}-new`}>New password</Label>
+        <Input
+          id={`${idPrefix}-new`}
+          type="password"
+          autoComplete="new-password"
+          className="h-11"
+          required
+          value={next}
+          onChange={(e) => setNext(e.target.value)}
+        />
+      </div>
+      <Button type="submit" disabled={saving} className="h-11 w-full">
+        {saving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+        Save
+      </Button>
+    </form>
+  );
 
   return (
     <nav className="border-b">
@@ -179,7 +217,8 @@ const Navbar: React.FC = () => {
                 <span className="sr-only">Toggle theme</span>
               </Button>
             )}
-            <Dialog open={open} onOpenChange={setOpen}>
+            {/* Desktop: always Dialog */}
+            <Dialog open={isDesktop ? open : false} onOpenChange={isDesktop ? setOpen : undefined}>
               <DialogTrigger asChild>
                 <Button variant="ghost" className="h-11 px-3">
                   <KeyRound className="h-5 w-5 mr-2" />
@@ -193,44 +232,7 @@ const Navbar: React.FC = () => {
                     Update the dashboard password.
                   </DialogDescription>
                 </DialogHeader>
-                <form onSubmit={handleChangePassword} className="space-y-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="current">Current password</Label>
-                    <Input
-                      id="current"
-                      type="password"
-                      autoComplete="current-password"
-                      className="h-11"
-                      required
-                      value={current}
-                      onChange={(e) => setCurrent(e.target.value)}
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="new">New password</Label>
-                    <Input
-                      id="new"
-                      type="password"
-                      autoComplete="new-password"
-                      className="h-11"
-                      required
-                      value={next}
-                      onChange={(e) => setNext(e.target.value)}
-                    />
-                  </div>
-                  <DialogFooter>
-                    <Button
-                      type="submit"
-                      disabled={saving}
-                      className="h-11 w-full"
-                    >
-                      {saving && (
-                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      )}
-                      Save
-                    </Button>
-                  </DialogFooter>
-                </form>
+                {changePasswordForm("desktop")}
               </DialogContent>
             </Dialog>
             <Button
@@ -324,64 +326,17 @@ const Navbar: React.FC = () => {
 
             <div className="my-2 border-t" />
 
-            {/* Change password — opens Dialog, closes drawer first */}
-            <Dialog open={open} onOpenChange={setOpen}>
-              <DialogTrigger asChild>
-                <button
-                  className="flex items-center gap-3 rounded-md px-3 py-3 text-base font-medium transition-colors hover:bg-accent text-left w-full"
-                  onClick={() => setDrawerOpen(false)}
-                >
-                  <KeyRound className="h-5 w-5 text-muted-foreground" />
-                  Change password
-                </button>
-              </DialogTrigger>
-              <DialogContent className="sm:max-w-sm">
-                <DialogHeader>
-                  <DialogTitle>Change password</DialogTitle>
-                  <DialogDescription>
-                    Update the dashboard password.
-                  </DialogDescription>
-                </DialogHeader>
-                <form onSubmit={handleChangePassword} className="space-y-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="current-mobile">Current password</Label>
-                    <Input
-                      id="current-mobile"
-                      type="password"
-                      autoComplete="current-password"
-                      className="h-11"
-                      required
-                      value={current}
-                      onChange={(e) => setCurrent(e.target.value)}
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="new-mobile">New password</Label>
-                    <Input
-                      id="new-mobile"
-                      type="password"
-                      autoComplete="new-password"
-                      className="h-11"
-                      required
-                      value={next}
-                      onChange={(e) => setNext(e.target.value)}
-                    />
-                  </div>
-                  <DialogFooter>
-                    <Button
-                      type="submit"
-                      disabled={saving}
-                      className="h-11 w-full"
-                    >
-                      {saving && (
-                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      )}
-                      Save
-                    </Button>
-                  </DialogFooter>
-                </form>
-              </DialogContent>
-            </Dialog>
+            {/* Change password — bottom-sheet Drawer on mobile */}
+            <button
+              className="flex items-center gap-3 rounded-md px-3 py-3 text-base font-medium transition-colors hover:bg-accent text-left w-full"
+              onClick={() => {
+                setDrawerOpen(false);
+                setOpen(true);
+              }}
+            >
+              <KeyRound className="h-5 w-5 text-muted-foreground" />
+              Change password
+            </button>
 
             <button
               className="flex items-center gap-3 rounded-md px-3 py-3 text-base font-medium transition-colors hover:bg-accent text-left w-full"
@@ -396,6 +351,22 @@ const Navbar: React.FC = () => {
           </div>
         </DrawerContent>
       </Drawer>
+
+      {/* Change-password: bottom-sheet Drawer on mobile, Dialog on desktop */}
+      {!isDesktop && (
+        <Drawer open={open} onOpenChange={setOpen}>
+          <DrawerContent>
+            <DrawerHeader>
+              <DrawerTitle>Change password</DrawerTitle>
+              <DrawerDescription>Update the dashboard password.</DrawerDescription>
+            </DrawerHeader>
+            <div className="px-4 pb-2">
+              {changePasswordForm("mobile")}
+            </div>
+            <DrawerFooter />
+          </DrawerContent>
+        </Drawer>
+      )}
     </nav>
   );
 };
