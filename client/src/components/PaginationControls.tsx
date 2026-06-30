@@ -44,6 +44,7 @@ const PaginationControls: React.FC<PaginationControlsProps> = ({
           size="sm"
           onClick={() => onPageChange((p) => Math.max(1, p - 1))}
           disabled={page === 1}
+          className={mobile ? "h-11 px-3" : ""}
         >
           {mobile ? (
             <ChevronLeft className="h-4 w-4" />
@@ -75,7 +76,7 @@ const PaginationControls: React.FC<PaginationControlsProps> = ({
                   variant={pageNum === page ? "default" : "outline"}
                   size="sm"
                   onClick={() => onPageChange(pageNum)}
-                  className={`${mobile ? "w-7 h-7 text-xs" : "w-8 h-8"} p-0`}
+                  className={`${mobile ? "w-9 h-9 text-xs" : "w-8 h-8"} p-0`}
                 >
                   {pageNum}
                 </Button>
@@ -89,6 +90,7 @@ const PaginationControls: React.FC<PaginationControlsProps> = ({
           size="sm"
           onClick={() => onPageChange((p) => Math.min(totalPages, p + 1))}
           disabled={page === totalPages}
+          className={mobile ? "h-11 px-3" : ""}
         >
           {mobile ? (
             <ChevronRight className="h-4 w-4" />

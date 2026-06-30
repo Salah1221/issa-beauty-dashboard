@@ -12,7 +12,7 @@ import {
   TableHeader,
   TableRow,
 } from "./components/ui/table";
-import { Loader2 } from "lucide-react";
+import { Loader2, Pencil, Trash2 } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "sonner";
 
@@ -23,9 +23,9 @@ const CategoriesRowsSkeleton = () =>
         <Skeleton className="h-3 w-[100px]" />
       </TableCell>
       <TableCell>
-        <div className="flex gap-3 justify-end">
-          <Skeleton className="h-9 w-[59px]" />
-          <Skeleton className="h-9 w-[75px]" />
+        <div className="flex gap-2 justify-end">
+          <Skeleton className="h-9 w-9" />
+          <Skeleton className="h-9 w-9" />
         </div>
       </TableCell>
     </TableRow>
@@ -40,7 +40,7 @@ const BannerRowsSkeleton = () =>
         <Skeleton className="h-3 w-[200px]" />
       </TableCell>
       <TableCell align="right">
-        <Skeleton className="h-9 w-[75px]" />
+        <Skeleton className="h-9 w-9" />
       </TableCell>
     </TableRow>
   ));
@@ -210,7 +210,7 @@ const ContentManagement: React.FC<{
         ) : (
           <CategoriesTopSkeleton />
         )}
-        <div className="max-h-[300px] overflow-y-auto">
+        <div className="overflow-y-auto">
           <Table>
             <TableHeader>
               <TableRow>
@@ -238,10 +238,12 @@ const ContentManagement: React.FC<{
                         category.name
                       )}
                     </TableCell>
-                    <TableCell className="flex gap-3 justify-end">
+                    <TableCell className="flex gap-2 justify-end">
                       {editingCategory &&
                       editingCategory._id === category._id ? (
                         <Button
+                          size="icon"
+                          aria-label="Save category"
                           onClick={() => {
                             handleEditCategory(category);
                             setSelectedId(category._id);
@@ -249,19 +251,24 @@ const ContentManagement: React.FC<{
                           disabled={saveLoading && selectedId === category._id}
                         >
                           {saveLoading && selectedId === category._id ? (
-                            <Loader2 className="w-5 h-5 animate-spin mr-2" />
+                            <Loader2 className="w-4 h-4 animate-spin" />
                           ) : (
-                            ""
+                            <span className="text-xs font-medium">Save</span>
                           )}
-                          Save
                         </Button>
                       ) : (
-                        <Button onClick={() => setEditingCategory(category)}>
-                          Edit
+                        <Button
+                          size="icon"
+                          aria-label="Edit category"
+                          onClick={() => setEditingCategory(category)}
+                        >
+                          <Pencil className="w-4 h-4" />
                         </Button>
                       )}
                       <Button
+                        size="icon"
                         variant="destructive"
+                        aria-label="Delete category"
                         onClick={() => {
                           handleDeleteCategory(category._id);
                           setSelectedId(category._id);
@@ -269,11 +276,10 @@ const ContentManagement: React.FC<{
                         disabled={deleteLoading && selectedId === category._id}
                       >
                         {deleteLoading && selectedId === category._id ? (
-                          <Loader2 className="w-5 h-5 animate-spin mr-2" />
+                          <Loader2 className="w-4 h-4 animate-spin" />
                         ) : (
-                          ""
+                          <Trash2 className="w-4 h-4" />
                         )}
-                        Delete
                       </Button>
                     </TableCell>
                   </TableRow>
@@ -293,18 +299,14 @@ const ContentManagement: React.FC<{
               onChange={(e) => setNewBannerImage(e.target.files?.[0] || null)}
             />
             <Button onClick={handleAddBanner} disabled={loading}>
-              <Loader2
-                className={`w-5 h-5 animate-spin ${
-                  loading ? "" : "hidden"
-                } mr-2`}
-              />
+              {loading && <Loader2 className="w-5 h-5 animate-spin mr-2" />}
               Add Banner
             </Button>
           </div>
         ) : (
           <BannerImgsTopSkeleton />
         )}
-        <div className="max-h-[300px] overflow-y-auto">
+        <div className="overflow-y-auto">
           <Table>
             <TableHeader>
               <TableRow>
@@ -325,10 +327,22 @@ const ContentManagement: React.FC<{
                         style={{ aspectRatio: "16/9" }}
                       />
                     </TableCell>
-                    <TableCell>{banner.imageUrl}</TableCell>
-                    <TableCell>
+                    <TableCell className="max-w-[140px]">
+                      <a
+                        href={banner.imageUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="truncate block max-w-full text-sm text-blue-600 hover:underline"
+                        title={banner.imageUrl}
+                      >
+                        {banner.imageUrl}
+                      </a>
+                    </TableCell>
+                    <TableCell className="text-right">
                       <Button
+                        size="icon"
                         variant="destructive"
+                        aria-label="Delete banner"
                         onClick={() => {
                           handleDeleteBanner(banner._id);
                           setSelectedId(banner._id);
@@ -336,11 +350,10 @@ const ContentManagement: React.FC<{
                         disabled={deleteLoading && selectedId === banner._id}
                       >
                         {deleteLoading && selectedId === banner._id ? (
-                          <Loader2 className="w-5 h-5 animate-spin mr-2" />
+                          <Loader2 className="w-4 h-4 animate-spin" />
                         ) : (
-                          ""
+                          <Trash2 className="w-4 h-4" />
                         )}
-                        Delete
                       </Button>
                     </TableCell>
                   </TableRow>

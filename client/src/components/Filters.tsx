@@ -56,6 +56,11 @@ const Filters: React.FC<FiltersProps> = ({
 }) => {
   return (
     <div className="flex flex-col sm:flex-row gap-4 mb-6">
+      {/* Primary action first on mobile */}
+      <Button onClick={onAddProduct} className="w-full sm:w-auto sm:order-last">
+        <PlusCircle className="mr-2 h-4 w-4" /> Add Product
+      </Button>
+
       <Input
         placeholder="Search products..."
         value={searchTerm}
@@ -63,29 +68,32 @@ const Filters: React.FC<FiltersProps> = ({
         className="w-full sm:max-w-xs"
       />
 
-      <Select onValueChange={onCategoryFilterChange} value={categoryFilter}>
-        <SelectTrigger className="w-full sm:w-[180px]">
-          <SelectValue placeholder="Filter by category" />
-        </SelectTrigger>
-        <SelectContent>
-          <SelectItem value="all">All Categories</SelectItem>
-          {allCategories.map((category) => (
-            <SelectItem key={category.name} value={category.name}>
-              {category.name}
-            </SelectItem>
-          ))}
-        </SelectContent>
-      </Select>
+      {/* Two selects side-by-side on mobile */}
+      <div className="grid grid-cols-2 gap-2 sm:contents">
+        <Select onValueChange={onCategoryFilterChange} value={categoryFilter}>
+          <SelectTrigger className="w-full sm:w-[180px]">
+            <SelectValue placeholder="Filter by category" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All Categories</SelectItem>
+            {allCategories.map((category) => (
+              <SelectItem key={category.name} value={category.name}>
+                {category.name}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
 
-      <Select onValueChange={onSortChange} value={sortOrder}>
-        <SelectTrigger className="w-full sm:w-[180px]">
-          <SelectValue placeholder="Sort by" />
-        </SelectTrigger>
-        <SelectContent>
-          <SelectItem value="newest">Newest First</SelectItem>
-          <SelectItem value="oldest">Oldest First</SelectItem>
-        </SelectContent>
-      </Select>
+        <Select onValueChange={onSortChange} value={sortOrder}>
+          <SelectTrigger className="w-full sm:w-[180px]">
+            <SelectValue placeholder="Sort by" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="newest">Newest First</SelectItem>
+            <SelectItem value="oldest">Oldest First</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
 
       {!mobile ? (
         <Dialog>
@@ -126,10 +134,6 @@ const Filters: React.FC<FiltersProps> = ({
           </DrawerContent>
         </Drawer>
       )}
-
-      <Button onClick={onAddProduct} className="w-full sm:w-auto">
-        <PlusCircle className="mr-2 h-4 w-4" /> Add Product
-      </Button>
     </div>
   );
 };

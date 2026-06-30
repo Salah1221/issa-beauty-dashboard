@@ -1,6 +1,7 @@
 import { Toaster } from "@/components/ui/sonner";
 import ErrorPage from "./ErrorPage";
 import Navbar from "./Navbar";
+import Orders from "./Orders";
 import ProductCreate from "./ProductCreate";
 import ProductDashboard from "./ProductDashboard";
 import Login from "./Login";
@@ -38,6 +39,10 @@ const router = createBrowserRouter([
           {
             path: "create",
             element: <ProductCreate />,
+          },
+          {
+            path: "orders",
+            element: <Orders />,
           },
         ],
       },

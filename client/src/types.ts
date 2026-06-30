@@ -20,3 +20,29 @@ export type BannerImage = {
   imageUrl: string;
   imageFileId?: string;
 };
+
+export type OrderStatus = "pending" | "confirmed" | "delivered" | "cancelled";
+
+export type OrderItem = {
+  productId: string;
+  name: string;
+  unitPrice: number;
+  discountPercentage: number;
+  quantity: number;
+  lineTotal: number;
+  imageUrl: string;
+};
+
+export type Order = {
+  _id: string;
+  orderNumber: string;
+  items: OrderItem[];
+  subtotal: number;
+  deliveryFee: number;
+  total: number;
+  customer: { fullName: string; phone: string; email?: string };
+  shipping: { address: string; city: string; area?: string; notes?: string };
+  paymentMethod: string;
+  status: OrderStatus;
+  createdAt: string;
+};
