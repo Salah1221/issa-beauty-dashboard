@@ -51,7 +51,7 @@ const RowsSkeleton = () => (
   <>
     {[...Array(8)].map((_, i) => (
       <TableRow key={i}>
-        {[...Array(5)].map((__, j) => (
+        {[...Array(6)].map((__, j) => (
           <TableCell key={j}>
             <Skeleton className="h-4 w-full max-w-[140px]" />
           </TableCell>

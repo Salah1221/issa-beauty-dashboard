@@ -1,4 +1,5 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
+import axios from "axios";
 import { useMediaQuery } from "@react-hookz/web";
 import {
   Select,
@@ -46,7 +47,7 @@ const Orders: React.FC = () => {
         setTotalPages(pages);
         setLoading(false);
       } catch (err) {
-        if (err instanceof Error && err.name === "CanceledError") return;
+        if (axios.isCancel(err)) return;
         console.error("Error fetching orders:", err);
         setOrders([]);
         setLoading(false);
@@ -72,7 +73,7 @@ const Orders: React.FC = () => {
 
   const handleStatusChanged = (updated: Order) => {
     setSelected(updated);
-    setOrders((prev) => prev.map((o) => (o._id === updated._id ? updated : o)));
+    fetchOrders(page);
   };
 
   return (
