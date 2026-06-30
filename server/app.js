@@ -2,7 +2,7 @@ import express from "express";
 import dotenv from "dotenv";
 import { fileURLToPath } from "url";
 import path from "path";
-import { Product, Category, BannerImg } from "./models.js";
+import { Product, Category, BannerImg, Order, ORDER_STATUSES } from "./models.js";
 import mongoose from "mongoose";
 import ImageKit from "imagekit";
 import multer from "multer";
@@ -450,6 +450,67 @@ app.delete("/api/banner-images/:id", async (req, res) => {
     res.status(200).json({ success: true, data: bannerImage });
   } catch (err) {
     res.status(404).json({ success: false, message: err.message });
+  }
+});
+
+app.get("/api/orders", async (req, res) => {
+  try {
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 20;
+    const skip = (page - 1) * limit;
+    const status = req.query.status;
+
+    const query = {};
+    if (status && ORDER_STATUSES.includes(status)) query.status = status;
+
+    const [data, total, pendingCount] = await Promise.all([
+      Order.find(query).sort({ createdAt: -1 }).skip(skip).limit(limit),
+      Order.countDocuments(query),
+      Order.countDocuments({ status: "pending" }),
+    ]);
+
+    res.status(200).json({
+      success: true,
+      data,
+      total,
+      page,
+      pages: Math.ceil(total / limit),
+      pendingCount,
+    });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+});
+
+app.get("/api/orders/pending-count", async (req, res) => {
+  try {
+    const count = await Order.countDocuments({ status: "pending" });
+    res.status(200).json({ success: true, count });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+});
+
+app.patch("/api/orders/:id/status", async (req, res) => {
+  try {
+    const { status } = req.body;
+    if (!ORDER_STATUSES.includes(status)) {
+      return res.status(400).json({ success: false, message: "Invalid status" });
+    }
+    if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
+      return res.status(400).json({ success: false, message: "Invalid ID" });
+    }
+    const order = await Order.findByIdAndUpdate(
+      req.params.id,
+      { status },
+      { new: true }
+    );
+    if (!order) {
+      return res.status(404).json({ success: false, message: "Order not found" });
+    }
+    res.status(200).json({ success: true, data: order });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
   }
 });
 
