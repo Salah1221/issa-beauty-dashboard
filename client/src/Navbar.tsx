@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { Moon, Sun, LogOut, KeyRound, Loader2 } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
+import { getPendingCount } from "./lib/orders";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
@@ -27,6 +29,21 @@ const Navbar: React.FC = () => {
   const [next, setNext] = useState("");
   const [saving, setSaving] = useState(false);
   const [open, setOpen] = useState(false);
+  const [pendingCount, setPendingCount] = useState(0);
+
+  useEffect(() => {
+    let active = true;
+    const refresh = () =>
+      getPendingCount()
+        .then((c) => { if (active) setPendingCount(c); })
+        .catch(() => {});
+    refresh();
+    window.addEventListener("orders:changed", refresh);
+    return () => {
+      active = false;
+      window.removeEventListener("orders:changed", refresh);
+    };
+  }, []);
 
   useEffect(() => {
     setMounted(true);
@@ -90,6 +107,19 @@ const Navbar: React.FC = () => {
           >
             <Logo />
           </Link>
+          <div className="flex items-center gap-1 sm:gap-2">
+            <Button variant="ghost" asChild className="h-11 px-3">
+              <Link to="/">Products</Link>
+            </Button>
+            <Button variant="ghost" asChild className="h-11 px-3">
+              <Link to="/orders" className="relative">
+                Orders
+                {pendingCount > 0 && (
+                  <Badge className="ml-2 px-1.5 py-0 text-[10px]">{pendingCount}</Badge>
+                )}
+              </Link>
+            </Button>
+          </div>
           <div className="flex items-center gap-1 sm:gap-2">
             {mounted && (
               <Button
