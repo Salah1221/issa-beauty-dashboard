@@ -41,6 +41,9 @@ const fmtDate = (iso: string) =>
     year: "numeric",
   });
 
+const itemCount = (order: Order) =>
+  order.items.reduce((n, it) => n + it.quantity, 0);
+
 interface OrderTableProps {
   orders: Order[];
   loading: boolean;
@@ -61,6 +64,21 @@ const RowsSkeleton = () => (
   </>
 );
 
+const CardsSkeleton = () => (
+  <>
+    {[...Array(6)].map((_, i) => (
+      <div key={i} className="rounded-lg border bg-card p-4">
+        <div className="flex items-center justify-between">
+          <Skeleton className="h-4 w-24" />
+          <Skeleton className="h-5 w-16 rounded-full" />
+        </div>
+        <Skeleton className="mt-3 h-3 w-32" />
+        <Skeleton className="mt-3 h-5 w-20" />
+      </div>
+    ))}
+  </>
+);
+
 const OrderTable: React.FC<OrderTableProps> = ({ orders, loading, onRowClick }) => {
   if (!loading && orders.length === 0) {
     return (
@@ -69,42 +87,77 @@ const OrderTable: React.FC<OrderTableProps> = ({ orders, loading, onRowClick }) 
   }
 
   return (
-    <Table>
-      <TableHeader>
-        <TableRow className="whitespace-nowrap">
-          <TableHead>Order #</TableHead>
-          <TableHead>Date</TableHead>
-          <TableHead>Customer</TableHead>
-          <TableHead>Items</TableHead>
-          <TableHead>Total</TableHead>
-          <TableHead>Status</TableHead>
-        </TableRow>
-      </TableHeader>
-      <TableBody className="whitespace-nowrap">
+    <>
+      {/* Mobile: card list (below sm) */}
+      <div className="space-y-3 sm:hidden">
         {loading ? (
-          <RowsSkeleton />
+          <CardsSkeleton />
         ) : (
           orders.map((order) => (
-            <TableRow
+            <button
               key={order._id}
-              className="cursor-pointer"
+              type="button"
               onClick={() => onRowClick(order)}
+              className="block w-full rounded-lg border bg-card p-4 text-left transition-colors hover:bg-accent/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
             >
-              <TableCell className="font-medium">{order.orderNumber}</TableCell>
-              <TableCell>{fmtDate(order.createdAt)}</TableCell>
-              <TableCell>{order.customer.fullName}</TableCell>
-              <TableCell>
-                {order.items.reduce((n, it) => n + it.quantity, 0)}
-              </TableCell>
-              <TableCell>${order.total.toFixed(2)}</TableCell>
-              <TableCell>
+              <div className="flex items-center justify-between gap-2">
+                <span className="font-medium">{order.orderNumber}</span>
                 <StatusBadge status={order.status} />
-              </TableCell>
-            </TableRow>
+              </div>
+              <div className="mt-1 text-sm text-muted-foreground">
+                {order.customer.fullName} · {fmtDate(order.createdAt)}
+              </div>
+              <div className="mt-2 flex items-center justify-between">
+                <span className="text-base font-semibold">
+                  ${order.total.toFixed(2)}
+                </span>
+                <span className="text-sm text-muted-foreground">
+                  {itemCount(order)} {itemCount(order) === 1 ? "item" : "items"}
+                </span>
+              </div>
+            </button>
           ))
         )}
-      </TableBody>
-    </Table>
+      </div>
+
+      {/* Desktop: table (sm and up) */}
+      <div className="hidden sm:block">
+        <Table>
+          <TableHeader>
+            <TableRow className="whitespace-nowrap">
+              <TableHead>Order #</TableHead>
+              <TableHead>Date</TableHead>
+              <TableHead>Customer</TableHead>
+              <TableHead>Items</TableHead>
+              <TableHead>Total</TableHead>
+              <TableHead>Status</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody className="whitespace-nowrap">
+            {loading ? (
+              <RowsSkeleton />
+            ) : (
+              orders.map((order) => (
+                <TableRow
+                  key={order._id}
+                  className="cursor-pointer"
+                  onClick={() => onRowClick(order)}
+                >
+                  <TableCell className="font-medium">{order.orderNumber}</TableCell>
+                  <TableCell>{fmtDate(order.createdAt)}</TableCell>
+                  <TableCell>{order.customer.fullName}</TableCell>
+                  <TableCell>{itemCount(order)}</TableCell>
+                  <TableCell>${order.total.toFixed(2)}</TableCell>
+                  <TableCell>
+                    <StatusBadge status={order.status} />
+                  </TableCell>
+                </TableRow>
+              ))
+            )}
+          </TableBody>
+        </Table>
+      </div>
+    </>
   );
 };
 
