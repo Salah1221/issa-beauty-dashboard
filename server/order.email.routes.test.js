@@ -90,4 +90,13 @@ describe("status-update emails on PATCH /api/orders/:id/status", () => {
     await flush();
     expect(res.body.data.status).toBe("cancelled");
   });
+
+  it("sends no email when statusUpdateEmail returns null (pending status)", async () => {
+    const o = await makeOrder({ status: "confirmed" });
+    const a = await agent();
+    const res = await a.patch(`/api/orders/${o._id}/status`).send({ status: "pending" });
+    expect(res.status).toBe(200);
+    await flush();
+    expect(mail.sent).toHaveLength(0);
+  });
 });
