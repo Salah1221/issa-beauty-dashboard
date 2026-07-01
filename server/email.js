@@ -3,6 +3,14 @@ import { Resend } from "resend";
 const FROM = "ISSA Beauty <orders@send.issabeauty.org>";
 const resend = process.env.RESEND ? new Resend(process.env.RESEND) : null;
 
+const esc = (s) =>
+  String(s ?? "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+
 const money = (n) => `$${Number(n).toFixed(2)}`;
 
 function shell(heading, bodyHtml) {
@@ -40,9 +48,9 @@ export function statusUpdateEmail(order) {
   const html = shell(
     copy.heading,
     `<p style="font-size:14px;">${copy.line}</p>
-     <p style="font-size:14px;">Order <strong>${order.orderNumber}</strong> · Total ${money(order.total)}</p>`,
+     <p style="font-size:14px;">Order <strong>${esc(order.orderNumber)}</strong> · Total ${money(order.total)}</p>`,
   );
-  return { subject: `Order ${order.orderNumber} ${copy.subject} — ISSA Beauty`, html };
+  return { subject: `Order ${esc(order.orderNumber)} ${copy.subject} — ISSA Beauty`, html };
 }
 
 export async function sendEmail({ to, subject, html }) {
