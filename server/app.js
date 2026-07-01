@@ -23,6 +23,7 @@ import {
   COOKIE_NAME,
   TOKEN_MAX_AGE_MS,
 } from "./auth.js";
+import { sendEmail, statusUpdateEmail } from "./email.js";
 
 const getAllCategories = async () => {
   return await Category.find();
@@ -507,6 +508,12 @@ app.patch("/api/orders/:id/status", async (req, res) => {
     );
     if (!order) {
       return res.status(404).json({ success: false, message: "Order not found" });
+    }
+    const built = statusUpdateEmail(order);
+    if (built && order.customer?.email) {
+      sendEmail({ to: order.customer.email, ...built }).catch((e) =>
+        console.error("status email failed", e),
+      );
     }
     res.status(200).json({ success: true, data: order });
   } catch (err) {
