@@ -71,7 +71,7 @@ const ProductCreate: React.FC = () => {
     console.log(id);
     if (id) {
       axios
-        .get(`/api/products/${id}`)
+        .get(`/api/admin/products/${id}`)
         .then((res) => {
           setCurrentProduct(res.data.data);
           setImageUrl(res.data.data.imageUrl);
@@ -89,7 +89,7 @@ const ProductCreate: React.FC = () => {
   }, [id]);
 
   useEffect(() => {
-    axios.get("/api/categories").then((response) => {
+    axios.get("/api/admin/categories").then((response) => {
       const data = response.data;
       if (data.success) {
         setCategories(data.data);
@@ -151,11 +151,11 @@ const ProductCreate: React.FC = () => {
 
     try {
       if (isOld) {
-        await axios.put(`/api/products/${id}`, formData, {
+        await axios.put(`/api/admin/products/${id}`, formData, {
           headers: { "Content-Type": "multipart/form-data" },
         });
       } else {
-        await axios.post("/api/products", formData, {
+        await axios.post("/api/admin/products", formData, {
           headers: { "Content-Type": "multipart/form-data" },
         });
       }

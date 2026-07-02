@@ -52,7 +52,7 @@ const ProductDashboard: React.FC = () => {
   const deleteProduct: DeleteProductFunction = async (id) => {
     setDeleteLoading(true);
     try {
-      const response = await axios.delete(`/api/products/${id}`, {
+      const response = await axios.delete(`/api/admin/products/${id}`, {
         params: {
           page,
           limit: 12,
@@ -80,7 +80,7 @@ const ProductDashboard: React.FC = () => {
       const fetchId = ++fetchIdRef.current;
       setLoading(true);
       try {
-        const response = await axios.get(`/api/products`, {
+        const response = await axios.get(`/api/admin/products`, {
           params: {
             page,
             limit: 12,
@@ -127,7 +127,7 @@ const ProductDashboard: React.FC = () => {
   }, [fetchProducts, searchTerm, categoryFilter, sortOrder, handlePageChange]);
 
   useEffect(() => {
-    axios.get("/api/categories").then((response) => {
+    axios.get("/api/admin/categories").then((response) => {
       const data = response.data;
       if (data.success) {
         setAllCategories(data.data);

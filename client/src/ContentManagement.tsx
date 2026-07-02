@@ -85,7 +85,7 @@ const ContentManagement: React.FC<{
       const formData = new FormData();
       formData.append("image", newBannerImage);
       try {
-        const response = await axios.post("/api/banner-images", formData, {
+        const response = await axios.post("/api/admin/banner-images", formData, {
           headers: { "Content-Type": "multipart/form-data" },
         });
         if (response.data.success) {
@@ -102,7 +102,7 @@ const ContentManagement: React.FC<{
   const handleDeleteBanner = async (bannerId: string) => {
     try {
       setDeleteLoading(true);
-      const response = await axios.delete(`/api/banner-images/${bannerId}`);
+      const response = await axios.delete(`/api/admin/banner-images/${bannerId}`);
       if (response.data.success) {
         setBannerImages(bannerImages.filter((b) => b._id !== bannerId));
       }
@@ -116,7 +116,7 @@ const ContentManagement: React.FC<{
     if (newCategory.trim()) {
       try {
         setLoading(true);
-        const response = await axios.post("/api/categories", {
+        const response = await axios.post("/api/admin/categories", {
           name: newCategory,
         });
         if (response.data.success) {
@@ -134,7 +134,7 @@ const ContentManagement: React.FC<{
     if (editingCategory && editingCategory.name.trim()) {
       try {
         setSaveLoading(true);
-        const response = await axios.put(`/api/categories/${category._id}`, {
+        const response = await axios.put(`/api/admin/categories/${category._id}`, {
           name: editingCategory.name,
         });
         setSaveLoading(false);
@@ -155,7 +155,7 @@ const ContentManagement: React.FC<{
   const handleDeleteCategory = async (categoryId: string) => {
     try {
       setDeleteLoading(true);
-      const response = await axios.delete(`/api/categories/${categoryId}`);
+      const response = await axios.delete(`/api/admin/categories/${categoryId}`);
       setDeleteLoading(false);
       if (response.data.success) {
         setAllCategories(allCategories.filter((c) => c._id !== categoryId));
@@ -167,7 +167,7 @@ const ContentManagement: React.FC<{
 
   const fetchBannerImages = async () => {
     try {
-      const response = await axios.get("/api/banner-images");
+      const response = await axios.get("/api/admin/banner-images");
       if (response.data.success) {
         setBannerImages(response.data.data);
       }
