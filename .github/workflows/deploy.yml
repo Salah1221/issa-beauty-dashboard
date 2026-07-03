@@ -1,10 +1,14 @@
-name: Deploy Dashboard to Production
+name: Deploy Dashboard (static)
 
 on:
   workflow_dispatch:
   push:
     branches:
       - main
+
+# The dashboard is now a static SPA served directly by nginx. It talks to the
+# standalone backend at api.issabeauty.org/api/admin, so this deploy only builds
+# the client and ships client/dist — no server, no .env, no PM2.
 
 jobs:
   build-and-deploy:
@@ -17,62 +21,26 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: "22" # Change if your project requires a different version
+          node-version: "22"
 
       - name: Setup pnpm
         uses: pnpm/action-setup@v3
         with:
           version: 10
 
-      - name: Install dependencies and Build
-        # This builds your app on GitHub's powerful servers, saving your VPS RAM
+      - name: Build the client (bakes in VITE_API_BASE_URL from client/.env.production)
         run: |
+          cd client
           pnpm install
           pnpm run build
 
-      - name: Create .env file for Server
-        run: |
-          cat <<EOF > .env
-          PORT=${{ secrets.PORT }}
-          MONGODB_URI=${{ secrets.MONGODB_URI }}
-          JWT_SECRET=${{ secrets.JWT_SECRET }}
-          INITIAL_DASHBOARD_PASSWORD=${{ secrets.INITIAL_DASHBOARD_PASSWORD }}
-          NODE_ENV=production
-          IMAGEKIT_PUBLIC_KEY=${{ secrets.IMAGEKIT_PUBLIC_KEY }}
-          IMAGEKIT_PRIVATE_KEY=${{ secrets.IMAGEKIT_PRIVATE_KEY }}
-          IMAGEKIT_URL_ENDPOINT=${{ secrets.IMAGEKIT_URL_ENDPOINT }}
-          RESEND=${{ secrets.RESEND }}
-          EOF
-
-      - name: Create .env file for Client
-        working-directory: ./client
-        run: |
-          cat <<EOF > .env
-          PORT=${{ secrets.PORT }}
-          EOF
-
-      - name: Deploy with rsync
+      - name: Deploy static bundle with rsync
         uses: burnett01/rsync-deployments@5.2
         with:
-          # Syncs everything to the server EXCEPT git history and the heavy node_modules folder
-          switches: -avz --delete --exclude='.git/' --exclude='node_modules/'
-          path: ./
-          remote_path: /var/www/issa-beauty-dashboard/
+          # Mirror the fresh build into the web root; --delete clears stale hashed assets
+          switches: -avz --delete
+          path: ./client/dist/
+          remote_path: /var/www/issa-beauty-dashboard/client/dist/
           remote_host: ${{ secrets.HOST }}
           remote_user: ${{ secrets.USERNAME }}
           remote_key: ${{ secrets.SSH_PRIVATE_KEY }}
-
-      - name: Install Server dependencies and Restart PM2
-        uses: appleboy/ssh-action@v1.0.3
-        with:
-          host: ${{ secrets.HOST }}
-          username: ${{ secrets.USERNAME }}
-          key: ${{ secrets.SSH_PRIVATE_KEY }}
-          script: |
-            cd /var/www/issa-beauty-dashboard
-
-            # Install strictly what is needed to run the backend on the server's OS architecture
-            pnpm install --prod
-
-            # Restart or start the PM2 process, forcing it to pick up the new .env variables
-            pm2 restart issa-beauty-dashboard --update-env || NODE_ENV=production pm2 start server/index.js --name "issa-beauty-dashboard"
