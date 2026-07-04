@@ -5,7 +5,9 @@ import { VitePWA } from "vite-plugin-pwa";
 
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), "");
-  const PORT = env.PORT ? parseInt(env.PORT) : 5001;
+  // Dev-only: port of the standalone backend the /api proxy targets. The
+  // backend runs on 5002 (see issa-beauty-backend/.env); override with PORT if needed.
+  const PORT = env.PORT ? parseInt(env.PORT) : 5002;
   return {
     plugins: [
       react(),
