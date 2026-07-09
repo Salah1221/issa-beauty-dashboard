@@ -24,8 +24,11 @@ export default defineConfig(({ mode }) => {
           start_url: "/",
           scope: "/",
           lang: "en",
-          theme_color: "#ffffff",
-          background_color: "#ffffff",
+          // Accent WebAPK splash: brand navy fills the launch screen with the
+          // (matching-tile) logo centered. The runtime <meta name="theme-color">
+          // takes over the status bar once the app loads.
+          theme_color: "#0f172a",
+          background_color: "#0f172a",
           display: "standalone",
           display_override: ["window-controls-overlay", "standalone"],
           icons: [
