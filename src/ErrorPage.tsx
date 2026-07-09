@@ -2,7 +2,6 @@ import { useRouteError, Link } from "react-router-dom";
 import { AlertTriangle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { useEffect } from "react";
 
 interface RouteError {
   status?: number;
@@ -12,15 +11,6 @@ interface RouteError {
 
 const ErrorPage = () => {
   const error = useRouteError() as RouteError;
-
-  useEffect(() => {
-    if (localStorage.getItem("theme") === "dark") {
-      document.documentElement.classList.add("dark");
-    }
-    return () => {
-      document.documentElement.classList.remove("dark");
-    };
-  }, []);
 
   return (
     <div className="min-h-screen flex items-center justify-center max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">

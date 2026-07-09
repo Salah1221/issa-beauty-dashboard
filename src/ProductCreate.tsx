@@ -17,6 +17,7 @@ import { useNavigate, useSearchParams } from "react-router-dom";
 import { Textarea } from "./components/ui/textarea";
 import { toast } from "sonner";
 import { Skeleton } from "./components/ui/skeleton";
+import ImageWithSkeleton from "./components/ImageWithSkeleton";
 
 const ProductCreateSkeleton = () => (
   <div className="p-5 sm:p-6 md:p-8 max-w-3xl mx-auto">
@@ -160,10 +161,12 @@ const ProductCreate: React.FC = () => {
         });
       }
       navigate("/");
-      setLoading(false);
     } catch (err) {
       console.error(err);
       toast.error((err as Error).message);
+    } finally {
+      // Always reset so a failed save can be retried without a page reload.
+      setLoading(false);
     }
   };
 
@@ -174,13 +177,14 @@ const ProductCreate: React.FC = () => {
       <form className="space-y-4" onSubmit={handleSubmit}>
         <>
           <div className="space-y-2">
-            <img
-              src={imageUrl ?? ""}
-              alt="Preview"
-              className={`w-full max-w-[300px] h-auto aspect-[3/2] object-cover rounded ${
-                !imageUrl ? "hidden" : ""
-              } mx-auto mb-5`}
-            />
+            {imageUrl && (
+              <ImageWithSkeleton
+                src={imageUrl}
+                alt="Preview"
+                width={640}
+                className="w-full max-w-[300px] aspect-[3/2] rounded mx-auto mb-5"
+              />
+            )}
             {!imageUrl && (
               <div
                 className="w-full max-w-[300px] aspect-[3/2] h-auto grid place-items-center border rounded mx-auto"
