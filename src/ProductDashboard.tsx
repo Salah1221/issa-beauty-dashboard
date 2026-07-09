@@ -2,10 +2,12 @@ import React, { useState, useEffect, useCallback } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import { useMediaQuery } from "@react-hookz/web";
+import { toast } from "sonner";
 import { Category, Product } from "./types";
 import PaginationControls from "./components/PaginationControls";
 import Filters from "./components/Filters";
 import ProductTable from "./components/ProductTable";
+import ConfirmDialog from "./components/ConfirmDialog";
 
 // API function types
 type FetchProductsFunction = (page: number) => Promise<void>;
@@ -23,6 +25,7 @@ const ProductDashboard: React.FC = () => {
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [deletedId, setDeletedId] = useState("");
+  const [pendingDelete, setPendingDelete] = useState<Product | null>(null);
   const [categoriesLoading, setCategoriesLoading] = useState(true);
   const abortControllerRef = React.useRef<AbortController | null>(null);
   const navigate = useNavigate();
@@ -61,9 +64,12 @@ const ProductDashboard: React.FC = () => {
       const data = response.data;
       if (!data.success) throw new Error("Error in server");
       setProducts(data.data);
-      setDeleteLoading(false);
     } catch (err) {
       console.error(err);
+      toast.error("Could not delete product");
+      throw err;
+    } finally {
+      setDeleteLoading(false);
     }
   };
   const fetchProducts: FetchProductsFunction = useCallback(
@@ -136,11 +142,17 @@ const ProductDashboard: React.FC = () => {
     });
   }, []);
 
-  const handleDelete = async (id: string) => {
-    setDeletedId(id);
-    await deleteProduct(id);
-    // Refetch current page to maintain consistent pagination
-    fetchProducts(page);
+  const confirmDelete = async () => {
+    if (!pendingDelete) return;
+    setDeletedId(pendingDelete._id);
+    try {
+      await deleteProduct(pendingDelete._id);
+      // Refetch current page to maintain consistent pagination
+      fetchProducts(page);
+      setPendingDelete(null);
+    } catch {
+      // toast already shown; keep the dialog open so the user can retry
+    }
   };
 
   const filteredProducts = products;
@@ -167,7 +179,9 @@ const ProductDashboard: React.FC = () => {
           products={filteredProducts}
           loading={loading}
           onEdit={(id) => navigate(`/create?id=${id}`)}
-          onDelete={handleDelete}
+          onDelete={(id) =>
+            setPendingDelete(products.find((p) => p._id === id) ?? null)
+          }
           deleteLoading={deleteLoading}
           deletedId={deletedId}
         />
@@ -177,6 +191,20 @@ const ProductDashboard: React.FC = () => {
         totalPages={totalPages}
         mobile={mobile}
         onPageChange={handlePageChange}
+      />
+      <ConfirmDialog
+        open={!!pendingDelete}
+        onOpenChange={(o) => !o && setPendingDelete(null)}
+        title="Delete product?"
+        description={
+          pendingDelete
+            ? `"${pendingDelete.name}" will be permanently removed. This can't be undone.`
+            : undefined
+        }
+        confirmLabel="Delete"
+        destructive
+        loading={deleteLoading}
+        onConfirm={confirmDelete}
       />
     </div>
   );

@@ -11,6 +11,7 @@ import { Badge } from "@/components/ui/badge";
 import { Pencil, Trash2, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "./ui/skeleton";
+import ImageWithSkeleton from "./ImageWithSkeleton";
 import { Product } from "../types";
 
 interface ProductTableProps {
@@ -120,10 +121,11 @@ const ProductTable: React.FC<ProductTableProps> = ({
           products.map((product, i) => (
             <div key={i} className="rounded-lg border bg-card p-4">
               <div className="flex gap-3">
-                <img
+                <ImageWithSkeleton
                   src={product.imageUrl}
                   alt={product.name}
-                  className="h-16 w-24 flex-shrink-0 rounded object-cover"
+                  width={220}
+                  className="h-16 w-24 flex-shrink-0 rounded"
                 />
                 <div className="min-w-0 flex-1">
                   <p className="truncate font-medium">{product.name}</p>
@@ -207,14 +209,12 @@ const ProductTable: React.FC<ProductTableProps> = ({
               {products.map((product, i) => (
                 <TableRow key={i}>
                   <TableCell>
-                    <div className="h-10" style={{ aspectRatio: "3 / 2" }}>
-                      <img
-                        src={product.imageUrl}
-                        alt={product.name}
-                        className="h-10 object-cover rounded"
-                        style={{ aspectRatio: "3 / 2" }}
-                      />
-                    </div>
+                    <ImageWithSkeleton
+                      src={product.imageUrl}
+                      alt={product.name}
+                      width={120}
+                      className="h-10 aspect-[3/2] rounded"
+                    />
                   </TableCell>
                   <TableCell className="font-medium whitespace-nowrap min-w-[200px]">
                     {product.name}

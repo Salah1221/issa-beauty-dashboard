@@ -36,9 +36,10 @@ import {
 import { toast } from "sonner";
 import { logout, changePassword } from "./lib/auth";
 import Logo from "./components/Logo";
+import { applyTheme, getInitialTheme, Theme } from "./lib/theme";
 
 const Navbar: React.FC = () => {
-  const [theme, setTheme] = useState<"light" | "dark">("light");
+  const [theme, setTheme] = useState<Theme>("light");
   const [mounted, setMounted] = useState(false);
   const isDesktop = useMediaQuery("(min-width: 640px)") ?? false;
 
@@ -69,27 +70,17 @@ const Navbar: React.FC = () => {
 
   useEffect(() => {
     setMounted(true);
-    const themeColorMetaTag = document.querySelector('meta[name="theme-color"]');
-    const savedTheme = localStorage.getItem("theme") as "light" | "dark" | null;
-    if (savedTheme) {
-      setTheme(savedTheme);
-      document.body.classList.toggle("dark", savedTheme === "dark");
-      themeColorMetaTag?.setAttribute(
-        "content",
-        savedTheme === "dark" ? "#020817" : "#ffffff"
-      );
-    }
+    // Sync React state with whatever the pre-paint bootstrap script applied
+    // (saved choice, or the system preference on first launch).
+    const initial = getInitialTheme();
+    setTheme(initial);
+    applyTheme(initial);
   }, []);
 
   const toggleTheme = () => {
     const newTheme = theme === "light" ? "dark" : "light";
     setTheme(newTheme);
-    document.body.classList.toggle("dark", newTheme === "dark");
-    const themeColorMetaTag = document.querySelector('meta[name="theme-color"]');
-    themeColorMetaTag?.setAttribute(
-      "content",
-      newTheme === "dark" ? "#020817" : "#ffffff"
-    );
+    applyTheme(newTheme);
     localStorage.setItem("theme", newTheme);
   };
 

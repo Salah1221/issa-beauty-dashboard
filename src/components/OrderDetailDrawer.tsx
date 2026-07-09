@@ -25,6 +25,7 @@ import { toast } from "sonner";
 import { Order, OrderStatus } from "../types";
 import { updateOrderStatus } from "../lib/orders";
 import { STATUS_BADGE, StatusBadge } from "./OrderTable";
+import ImageWithSkeleton from "./ImageWithSkeleton";
 
 const ALL_STATUSES = Object.keys(STATUS_BADGE) as OrderStatus[];
 
@@ -78,10 +79,11 @@ const OrderDetailDrawer: React.FC<OrderDetailDrawerProps> = ({
         <div className="divide-y">
           {order.items.map((it) => (
             <div key={it.productId} className="flex items-center gap-3 py-2">
-              <img
+              <ImageWithSkeleton
                 src={it.imageUrl}
                 alt={it.name}
-                className="h-10 w-10 rounded object-cover"
+                width={96}
+                className="h-10 w-10 flex-shrink-0 rounded"
               />
               <span className="flex-1 text-sm">
                 {it.name} × {it.quantity}

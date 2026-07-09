@@ -102,7 +102,10 @@ const Filters: React.FC<FiltersProps> = ({
               <TableOfContents className="mr-2 h-4 w-4" /> Manage Categories
             </Button>
           </DialogTrigger>
-          <DialogContent aria-describedby={undefined}>
+          <DialogContent
+            className="max-h-[90vh] overflow-y-auto"
+            aria-describedby={undefined}
+          >
             <DialogHeader className="mb-3">
               <DialogTitle>Manage Content</DialogTitle>
             </DialogHeader>
@@ -121,16 +124,18 @@ const Filters: React.FC<FiltersProps> = ({
               <TableOfContents className="mr-2 h-4 w-4" /> Manage Content
             </Button>
           </DrawerTrigger>
-          <DrawerContent className="p-5 pb-7" aria-describedby={undefined}>
-            <DrawerHeader className="mb-3">
-              <DialogTitle>Manage Content</DialogTitle>
-            </DrawerHeader>
-            <ContentManagement
-              allCategories={allCategories}
-              setAllCategories={setAllCategories}
-              categoriesLoading={categoriesLoading}
-              setCategoriesLoading={setCategoriesLoading}
-            />
+          <DrawerContent className="max-h-[90vh]" aria-describedby={undefined}>
+            <div className="overflow-y-auto px-5 pb-7">
+              <DrawerHeader className="mb-3 px-0">
+                <DialogTitle>Manage Content</DialogTitle>
+              </DrawerHeader>
+              <ContentManagement
+                allCategories={allCategories}
+                setAllCategories={setAllCategories}
+                categoriesLoading={categoriesLoading}
+                setCategoriesLoading={setCategoriesLoading}
+              />
+            </div>
           </DrawerContent>
         </Drawer>
       )}

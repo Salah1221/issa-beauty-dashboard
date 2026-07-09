@@ -15,6 +15,8 @@ import {
 import { Loader2, Pencil, Trash2 } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "sonner";
+import ConfirmDialog from "./components/ConfirmDialog";
+import ImageWithSkeleton from "./components/ImageWithSkeleton";
 
 const CategoriesRowsSkeleton = () =>
   Array.from({ length: 5 }).map((_, i) => (
@@ -78,6 +80,8 @@ const ContentManagement: React.FC<{
   const [saveLoading, setSaveLoading] = useState(false);
   const [selectedId, setSelectedId] = useState("");
   const [bannerLoading, setBannerLoading] = useState(true);
+  const [pendingCategory, setPendingCategory] = useState<Category | null>(null);
+  const [pendingBanner, setPendingBanner] = useState<BannerImage | null>(null);
 
   const handleAddBanner = async () => {
     if (newBannerImage) {
@@ -103,12 +107,14 @@ const ContentManagement: React.FC<{
     try {
       setDeleteLoading(true);
       const response = await axios.delete(`/api/admin/banner-images/${bannerId}`);
-      if (response.data.success) {
-        setBannerImages(bannerImages.filter((b) => b._id !== bannerId));
-      }
-      setDeleteLoading(false);
+      if (!response.data.success) throw new Error("Operation failed");
+      setBannerImages(bannerImages.filter((b) => b._id !== bannerId));
     } catch (error) {
       console.error("Error deleting banner image:", error);
+      toast.error("Could not delete banner image");
+      throw error;
+    } finally {
+      setDeleteLoading(false);
     }
   };
 
@@ -156,12 +162,36 @@ const ContentManagement: React.FC<{
     try {
       setDeleteLoading(true);
       const response = await axios.delete(`/api/admin/categories/${categoryId}`);
-      setDeleteLoading(false);
-      if (response.data.success) {
-        setAllCategories(allCategories.filter((c) => c._id !== categoryId));
-      }
+      if (!response.data.success) throw new Error("Operation failed");
+      setAllCategories(allCategories.filter((c) => c._id !== categoryId));
     } catch (error) {
       console.error("Error deleting category:", error);
+      toast.error("Could not delete category");
+      throw error;
+    } finally {
+      setDeleteLoading(false);
+    }
+  };
+
+  const confirmDeleteCategory = async () => {
+    if (!pendingCategory) return;
+    setSelectedId(pendingCategory._id);
+    try {
+      await handleDeleteCategory(pendingCategory._id);
+      setPendingCategory(null);
+    } catch {
+      // toast already shown; keep the dialog open so the user can retry
+    }
+  };
+
+  const confirmDeleteBanner = async () => {
+    if (!pendingBanner) return;
+    setSelectedId(pendingBanner._id);
+    try {
+      await handleDeleteBanner(pendingBanner._id);
+      setPendingBanner(null);
+    } catch {
+      // toast already shown; keep the dialog open so the user can retry
     }
   };
 
@@ -189,6 +219,7 @@ const ContentManagement: React.FC<{
   }, [allCategories, setCategoriesLoading]);
 
   return (
+    <>
     <Tabs defaultValue="categories">
       <TabsList className="grid w-full grid-cols-2 mb-5">
         <TabsTrigger value="categories">Categories</TabsTrigger>
@@ -269,10 +300,7 @@ const ContentManagement: React.FC<{
                         size="icon"
                         variant="destructive"
                         aria-label="Delete category"
-                        onClick={() => {
-                          handleDeleteCategory(category._id);
-                          setSelectedId(category._id);
-                        }}
+                        onClick={() => setPendingCategory(category)}
                         disabled={deleteLoading && selectedId === category._id}
                       >
                         {deleteLoading && selectedId === category._id ? (
@@ -320,11 +348,11 @@ const ContentManagement: React.FC<{
                 bannerImages.map((banner) => (
                   <TableRow key={banner._id}>
                     <TableCell>
-                      <img
+                      <ImageWithSkeleton
                         src={banner.imageUrl}
                         alt="Banner"
-                        className="w-20 object-cover rounded"
-                        style={{ aspectRatio: "16/9" }}
+                        width={200}
+                        className="w-20 aspect-video rounded"
                       />
                     </TableCell>
                     <TableCell className="max-w-[140px]">
@@ -343,10 +371,7 @@ const ContentManagement: React.FC<{
                         size="icon"
                         variant="destructive"
                         aria-label="Delete banner"
-                        onClick={() => {
-                          handleDeleteBanner(banner._id);
-                          setSelectedId(banner._id);
-                        }}
+                        onClick={() => setPendingBanner(banner)}
                         disabled={deleteLoading && selectedId === banner._id}
                       >
                         {deleteLoading && selectedId === banner._id ? (
@@ -366,6 +391,31 @@ const ContentManagement: React.FC<{
         </div>
       </TabsContent>
     </Tabs>
+    <ConfirmDialog
+      open={!!pendingCategory}
+      onOpenChange={(o) => !o && setPendingCategory(null)}
+      title="Delete category?"
+      description={
+        pendingCategory
+          ? `"${pendingCategory.name}" will be permanently removed.`
+          : undefined
+      }
+      confirmLabel="Delete"
+      destructive
+      loading={deleteLoading}
+      onConfirm={confirmDeleteCategory}
+    />
+    <ConfirmDialog
+      open={!!pendingBanner}
+      onOpenChange={(o) => !o && setPendingBanner(null)}
+      title="Delete banner image?"
+      description="This banner image will be permanently removed."
+      confirmLabel="Delete"
+      destructive
+      loading={deleteLoading}
+      onConfirm={confirmDeleteBanner}
+    />
+    </>
   );
 };
 
