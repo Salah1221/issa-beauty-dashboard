@@ -1,6 +1,5 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import axios from "axios";
-import { useMediaQuery } from "@react-hookz/web";
 import {
   Select,
   SelectContent,
@@ -28,10 +27,10 @@ const Orders: React.FC = () => {
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(false);
   const [selected, setSelected] = useState<Order | null>(null);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const abortRef = useRef<AbortController | null>(null);
-  const mobile = useMediaQuery("(max-width: 640px)") ?? false;
 
   const fetchOrders = useCallback(
     async (p: number) => {
@@ -45,11 +44,13 @@ const Orders: React.FC = () => {
         );
         setOrders(orders);
         setTotalPages(pages);
+        setError(false);
         setLoading(false);
       } catch (err) {
         if (axios.isCancel(err)) return;
         console.error("Error fetching orders:", err);
         setOrders([]);
+        setError(true);
         setLoading(false);
       }
     },
@@ -99,13 +100,18 @@ const Orders: React.FC = () => {
       </div>
 
       <div className="overflow-x-auto">
-        <OrderTable orders={orders} loading={loading} onRowClick={openOrder} />
+        <OrderTable
+          orders={orders}
+          loading={loading}
+          error={error}
+          onRetry={() => fetchOrders(page)}
+          onRowClick={openOrder}
+        />
       </div>
 
       <PaginationControls
         page={page}
         totalPages={totalPages}
-        mobile={mobile}
         onPageChange={setPage}
       />
 

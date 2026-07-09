@@ -29,7 +29,6 @@ import {
   DrawerClose,
   DrawerContent,
   DrawerDescription,
-  DrawerFooter,
   DrawerHeader,
   DrawerTitle,
 } from "@/components/ui/drawer";
@@ -346,15 +345,18 @@ const Navbar: React.FC = () => {
       {/* Change-password: bottom-sheet Drawer on mobile, Dialog on desktop */}
       {!isDesktop && (
         <Drawer open={open} onOpenChange={setOpen}>
-          <DrawerContent>
-            <DrawerHeader>
-              <DrawerTitle>Change password</DrawerTitle>
-              <DrawerDescription>Update the dashboard password.</DrawerDescription>
-            </DrawerHeader>
-            <div className="px-4 pb-2">
+          <DrawerContent className="max-h-[90vh]">
+            {/* Scroll region + generous bottom padding so the on-screen
+                keyboard never covers the inputs or the Save button. */}
+            <div className="overflow-y-auto px-4 pb-8">
+              <DrawerHeader className="px-0">
+                <DrawerTitle>Change password</DrawerTitle>
+                <DrawerDescription>
+                  Update the dashboard password.
+                </DrawerDescription>
+              </DrawerHeader>
               {changePasswordForm("mobile")}
             </div>
-            <DrawerFooter />
           </DrawerContent>
         </Drawer>
       )}

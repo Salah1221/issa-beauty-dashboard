@@ -12,11 +12,14 @@ import { Pencil, Trash2, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "./ui/skeleton";
 import ImageWithSkeleton from "./ImageWithSkeleton";
+import LoadError from "./LoadError";
 import { Product } from "../types";
 
 interface ProductTableProps {
   products: Product[];
   loading: boolean;
+  error?: boolean;
+  onRetry?: () => void;
   onEdit: (id: string) => void;
   onDelete: (id: string) => void;
   deleteLoading: boolean;
@@ -98,11 +101,16 @@ const StockBadge: React.FC<{ in_stock: boolean | undefined }> = ({ in_stock }) =
 const ProductTable: React.FC<ProductTableProps> = ({
   products,
   loading,
+  error,
+  onRetry,
   onEdit,
   onDelete,
   deleteLoading,
   deletedId,
 }) => {
+  if (!loading && error) {
+    return <LoadError message="Couldn't load products." onRetry={onRetry} />;
+  }
   if (!loading && products.length === 0) {
     return (
       <p className="text-muted-foreground font-bold text-3xl mt-5">
@@ -144,26 +152,28 @@ const ProductTable: React.FC<ProductTableProps> = ({
               </div>
               <div className="mt-3 flex items-center justify-between">
                 <StockBadge in_stock={product.in_stock} />
-                <div className="flex gap-1">
+                <div className="flex gap-2">
                   <Button
                     variant="ghost"
-                    size="sm"
+                    size="icon"
+                    className="h-11 w-11"
                     aria-label="Edit product"
                     onClick={() => onEdit(product._id)}
                   >
-                    <Pencil className="h-4 w-4" />
+                    <Pencil className="h-5 w-5" />
                   </Button>
                   <Button
                     variant="ghost"
-                    size="sm"
+                    size="icon"
+                    className="h-11 w-11 text-destructive hover:text-destructive"
                     aria-label="Delete product"
                     onClick={() => onDelete(product._id)}
                     disabled={deleteLoading && product._id === deletedId}
                   >
                     {!deleteLoading || product._id !== deletedId ? (
-                      <Trash2 className="h-4 w-4" />
+                      <Trash2 className="h-5 w-5" />
                     ) : (
-                      <Loader2 className="h-4 w-4 animate-spin" />
+                      <Loader2 className="h-5 w-5 animate-spin" />
                     )}
                   </Button>
                 </div>

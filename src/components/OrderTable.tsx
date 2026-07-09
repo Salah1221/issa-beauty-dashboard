@@ -9,6 +9,7 @@ import {
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
+import LoadError from "./LoadError";
 import { Order, OrderStatus } from "../types";
 
 export const STATUS_BADGE: Record<
@@ -47,6 +48,8 @@ const itemCount = (order: Order) =>
 interface OrderTableProps {
   orders: Order[];
   loading: boolean;
+  error?: boolean;
+  onRetry?: () => void;
   onRowClick: (order: Order) => void;
 }
 
@@ -79,7 +82,16 @@ const CardsSkeleton = () => (
   </>
 );
 
-const OrderTable: React.FC<OrderTableProps> = ({ orders, loading, onRowClick }) => {
+const OrderTable: React.FC<OrderTableProps> = ({
+  orders,
+  loading,
+  error,
+  onRetry,
+  onRowClick,
+}) => {
+  if (!loading && error) {
+    return <LoadError message="Couldn't load orders." onRetry={onRetry} />;
+  }
   if (!loading && orders.length === 0) {
     return (
       <p className="text-muted-foreground font-bold text-3xl mt-5">No Orders</p>

@@ -66,6 +66,10 @@ const ProductCreate: React.FC = () => {
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(false);
   const [pageLoading, setPageLoading] = useState(true);
+  // Raw text for the numeric fields so typing "12." (and mid-string edits)
+  // isn't clobbered; the parsed number lives on currentProduct.
+  const [priceInput, setPriceInput] = useState("");
+  const [discountInput, setDiscountInput] = useState("");
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -74,8 +78,13 @@ const ProductCreate: React.FC = () => {
       axios
         .get(`/api/admin/products/${id}`)
         .then((res) => {
-          setCurrentProduct(res.data.data);
-          setImageUrl(res.data.data.imageUrl);
+          const p = res.data.data as Product;
+          setCurrentProduct(p);
+          setImageUrl(p.imageUrl);
+          setPriceInput(p.price != null ? String(p.price) : "");
+          setDiscountInput(
+            p.discountPercentage != null ? String(p.discountPercentage) : ""
+          );
         })
         .catch((err) => console.log(err.message));
     } else {
@@ -289,26 +298,18 @@ const ProductCreate: React.FC = () => {
             id="price"
             name="price"
             inputMode="decimal"
-            defaultValue={currentProduct?.price}
+            value={priceInput}
             onChange={(e) => {
-              if (
-                !isNaN(parseFloat(e.target.value)) &&
-                e.target.value[e.target.value.length - 1] !== "."
-              ) {
-                e.target.value = parseFloat(e.target.value).toString();
-                setCurrentProduct(
-                  (c) =>
-                    ({
-                      ...c,
-                      price: parseFloat(e.target.value),
-                    } as Product)
-                );
-              } else if (
-                e.target.value !== "" &&
-                e.target.value[e.target.value.length - 1] !== "."
-              ) {
-                e.target.value = "";
-              }
+              const v = e.target.value;
+              if (v !== "" && !/^\d*\.?\d*$/.test(v)) return;
+              setPriceInput(v);
+              setCurrentProduct(
+                (c) =>
+                  ({
+                    ...c,
+                    price: v === "" ? undefined : parseFloat(v),
+                  } as Product)
+              );
             }}
           />
           {errors.price && (
@@ -321,28 +322,20 @@ const ProductCreate: React.FC = () => {
             id="discountPercentage"
             name="discountPercentage"
             inputMode="decimal"
-            defaultValue={currentProduct?.discountPercentage}
             min={0}
             max={100}
+            value={discountInput}
             onChange={(e) => {
-              if (
-                !isNaN(parseFloat(e.target.value)) &&
-                e.target.value[e.target.value.length - 1] !== "."
-              ) {
-                e.target.value = parseFloat(e.target.value).toString();
-                setCurrentProduct(
-                  (c) =>
-                    ({
-                      ...c,
-                      discountPercentage: parseFloat(e.target.value),
-                    } as Product)
-                );
-              } else if (
-                e.target.value !== "" &&
-                e.target.value[e.target.value.length - 1] !== "."
-              ) {
-                e.target.value = "";
-              }
+              const v = e.target.value;
+              if (v !== "" && !/^\d*\.?\d*$/.test(v)) return;
+              setDiscountInput(v);
+              setCurrentProduct(
+                (c) =>
+                  ({
+                    ...c,
+                    discountPercentage: v === "" ? undefined : parseFloat(v),
+                  } as Product)
+              );
             }}
           />
           {errors.discountPercentage && (
