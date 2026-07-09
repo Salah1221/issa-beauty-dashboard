@@ -13,20 +13,53 @@ export default defineConfig(({ mode }) => {
       react(),
       VitePWA({
         registerType: "autoUpdate",
+        // Icons live in public/ and are generated from the navbar logo mark
+        // (white on navy) — see the icon set installed alongside index.html.
+        includeAssets: ["apple-touch-icon.png", "icon_issa.png"],
         manifest: {
+          id: "issa_beauty-374336",
           name: "Issa Beauty Dashboard",
           short_name: "Issa Beauty",
           description: "A dashboard for managing Issa Beauty's website",
+          start_url: "/",
+          scope: "/",
+          lang: "en",
           theme_color: "#ffffff",
           background_color: "#ffffff",
           display: "standalone",
+          display_override: ["window-controls-overlay", "standalone"],
           icons: [
             {
-              src: "/icon_issa.png",
-              sizes: "512x512 128x128 64x64 32x32 24x24 16x16",
+              src: "/pwa-192x192.png",
+              sizes: "192x192",
               type: "image/png",
+              purpose: "any",
+            },
+            {
+              src: "/pwa-512x512.png",
+              sizes: "512x512",
+              type: "image/png",
+              purpose: "any",
+            },
+            {
+              src: "/maskable-icon-192x192.png",
+              sizes: "192x192",
+              type: "image/png",
+              purpose: "maskable",
+            },
+            {
+              src: "/maskable-icon-512x512.png",
+              sizes: "512x512",
+              type: "image/png",
+              purpose: "maskable",
             },
           ],
+        },
+        workbox: {
+          // Cross-origin API (api.issabeauty.org) must never be served from the
+          // navigation fallback; only same-origin SPA routes fall back to the shell.
+          navigateFallback: "/index.html",
+          navigateFallbackDenylist: [/^\/api\//],
         },
         devOptions: {
           enabled: true,
