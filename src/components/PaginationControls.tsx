@@ -1,118 +1,97 @@
 import React from "react";
-import { Button } from "@/components/ui/button";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import {
+  Pagination,
+  PaginationContent,
+  PaginationEllipsis,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+} from "@/components/ui/pagination";
 
 interface PaginationControlsProps {
   page: number;
   totalPages: number;
-  mobile: boolean;
-  onPageChange: (newPage: number | ((prev: number) => number)) => void;
+  onPageChange: (newPage: number) => void;
+}
+
+// Compact page list: 1 … p-1 p p+1 … last, collapsing gaps with ellipses.
+function getPages(page: number, total: number): (number | "ellipsis")[] {
+  if (total <= 5) return Array.from({ length: total }, (_, i) => i + 1);
+  const pages: (number | "ellipsis")[] = [1];
+  const start = Math.max(2, page - 1);
+  const end = Math.min(total - 1, page + 1);
+  if (start > 2) pages.push("ellipsis");
+  for (let p = start; p <= end; p++) pages.push(p);
+  if (end < total - 1) pages.push("ellipsis");
+  pages.push(total);
+  return pages;
 }
 
 const PaginationControls: React.FC<PaginationControlsProps> = ({
   page,
   totalPages,
-  mobile,
   onPageChange,
 }) => {
   if (totalPages <= 1) return null;
 
+  const go = (p: number) => (e: React.MouseEvent) => {
+    e.preventDefault();
+    if (p < 1 || p > totalPages || p === page) return;
+    onPageChange(p);
+  };
+
+  const atStart = page === 1;
+  const atEnd = page === totalPages;
+
   return (
-    <div
-      className={`mt-6 ${mobile ? "flex flex-col space-y-3" : "flex items-center justify-between"}`}
-    >
-      <div
-        className={`text-sm text-muted-foreground ${mobile ? "text-center" : ""}`}
-      >
-        Page {page} of {totalPages}
-      </div>
-      <div
-        className={`flex items-center ${mobile ? "justify-center space-x-1" : "space-x-2"}`}
-      >
-        {!mobile && (
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => onPageChange(1)}
-            disabled={page === 1}
-          >
-            First
-          </Button>
-        )}
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => onPageChange((p) => Math.max(1, p - 1))}
-          disabled={page === 1}
-          className={mobile ? "h-11 px-3" : ""}
-        >
-          {mobile ? (
-            <ChevronLeft className="h-4 w-4" />
-          ) : (
-            <>
-              <ChevronLeft className="h-4 w-4" />
-              {!mobile && "Previous"}
-            </>
-          )}
-        </Button>
+    <Pagination className="mt-6">
+      <PaginationContent>
+        <PaginationItem>
+          {/* Icon-only on mobile (hide the label span), full on desktop. */}
+          <PaginationPrevious
+            href="#"
+            onClick={go(page - 1)}
+            aria-disabled={atStart}
+            tabIndex={atStart ? -1 : undefined}
+            className={`h-11 sm:h-10 [&>span]:hidden sm:[&>span]:inline ${
+              atStart ? "pointer-events-none opacity-50" : ""
+            }`}
+          />
+        </PaginationItem>
 
-        {/* Page Numbers - Show fewer on mobile */}
-        <div className="flex items-center space-x-1">
-          {Array.from(
-            { length: Math.min(mobile ? 3 : 5, totalPages) },
-            (_, i) => {
-              const pageNum =
-                Math.max(
-                  1,
-                  Math.min(
-                    totalPages - (mobile ? 2 : 4),
-                    page - (mobile ? 1 : 2),
-                  ),
-                ) + i;
-              if (pageNum > totalPages) return null;
-              return (
-                <Button
-                  key={pageNum}
-                  variant={pageNum === page ? "default" : "outline"}
-                  size="sm"
-                  onClick={() => onPageChange(pageNum)}
-                  className={`${mobile ? "w-9 h-9 text-xs" : "w-8 h-8"} p-0`}
-                >
-                  {pageNum}
-                </Button>
-              );
-            },
-          )}
-        </div>
-
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => onPageChange((p) => Math.min(totalPages, p + 1))}
-          disabled={page === totalPages}
-          className={mobile ? "h-11 px-3" : ""}
-        >
-          {mobile ? (
-            <ChevronRight className="h-4 w-4" />
+        {getPages(page, totalPages).map((p, i) =>
+          p === "ellipsis" ? (
+            <PaginationItem key={`ellipsis-${i}`}>
+              <PaginationEllipsis className="h-11 w-9 sm:h-10" />
+            </PaginationItem>
           ) : (
-            <>
-              {!mobile && "Next"}
-              <ChevronRight className="h-4 w-4" />
-            </>
-          )}
-        </Button>
-        {!mobile && (
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => onPageChange(totalPages)}
-            disabled={page === totalPages}
-          >
-            Last
-          </Button>
+            <PaginationItem key={p}>
+              <PaginationLink
+                href="#"
+                isActive={p === page}
+                onClick={go(p)}
+                className="h-11 w-11 sm:h-10 sm:w-10"
+              >
+                {p}
+              </PaginationLink>
+            </PaginationItem>
+          )
         )}
-      </div>
-    </div>
+
+        <PaginationItem>
+          <PaginationNext
+            href="#"
+            onClick={go(page + 1)}
+            aria-disabled={atEnd}
+            tabIndex={atEnd ? -1 : undefined}
+            className={`h-11 sm:h-10 [&>span]:hidden sm:[&>span]:inline ${
+              atEnd ? "pointer-events-none opacity-50" : ""
+            }`}
+          />
+        </PaginationItem>
+      </PaginationContent>
+    </Pagination>
   );
 };
 

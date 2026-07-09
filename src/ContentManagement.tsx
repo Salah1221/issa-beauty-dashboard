@@ -241,7 +241,87 @@ const ContentManagement: React.FC<{
         ) : (
           <CategoriesTopSkeleton />
         )}
-        <div className="overflow-y-auto">
+        {/* Mobile: card list */}
+        <div className="space-y-3 sm:hidden">
+          {categoriesLoading ? (
+            Array.from({ length: 5 }).map((_, i) => (
+              <div key={i} className="rounded-lg border p-4">
+                <Skeleton className="h-4 w-1/2" />
+              </div>
+            ))
+          ) : allCategories.length === 0 ? (
+            <p className="text-muted-foreground py-6 text-center">
+              No categories yet
+            </p>
+          ) : (
+            allCategories.map((category) => {
+              const editing =
+                editingCategory && editingCategory._id === category._id;
+              return (
+                <div key={category._id} className="rounded-lg border p-4">
+                  {editing ? (
+                    <Input
+                      value={editingCategory!.name}
+                      onChange={(e) =>
+                        setEditingCategory({
+                          ...editingCategory!,
+                          name: e.target.value,
+                        })
+                      }
+                    />
+                  ) : (
+                    <p className="font-medium break-words">{category.name}</p>
+                  )}
+                  <div className="mt-3 flex justify-end gap-2">
+                    {editing ? (
+                      <Button
+                        className="h-11 px-4"
+                        aria-label="Save category"
+                        onClick={() => {
+                          handleEditCategory(category);
+                          setSelectedId(category._id);
+                        }}
+                        disabled={saveLoading && selectedId === category._id}
+                      >
+                        {saveLoading && selectedId === category._id ? (
+                          <Loader2 className="w-4 h-4 animate-spin" />
+                        ) : (
+                          "Save"
+                        )}
+                      </Button>
+                    ) : (
+                      <Button
+                        size="icon"
+                        className="h-11 w-11"
+                        aria-label="Edit category"
+                        onClick={() => setEditingCategory(category)}
+                      >
+                        <Pencil className="w-5 h-5" />
+                      </Button>
+                    )}
+                    <Button
+                      size="icon"
+                      variant="destructive"
+                      className="h-11 w-11"
+                      aria-label="Delete category"
+                      onClick={() => setPendingCategory(category)}
+                      disabled={deleteLoading && selectedId === category._id}
+                    >
+                      {deleteLoading && selectedId === category._id ? (
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                      ) : (
+                        <Trash2 className="w-5 h-5" />
+                      )}
+                    </Button>
+                  </div>
+                </div>
+              );
+            })
+          )}
+        </div>
+
+        {/* Desktop: table */}
+        <div className="hidden overflow-y-auto sm:block">
           <Table>
             <TableHeader>
               <TableRow>
@@ -334,7 +414,61 @@ const ContentManagement: React.FC<{
         ) : (
           <BannerImgsTopSkeleton />
         )}
-        <div className="overflow-y-auto">
+        {/* Mobile: card list */}
+        <div className="space-y-3 sm:hidden">
+          {bannerLoading ? (
+            Array.from({ length: 4 }).map((_, i) => (
+              <div key={i} className="flex gap-3 rounded-lg border p-4">
+                <Skeleton className="w-24 flex-shrink-0 rounded aspect-video" />
+                <Skeleton className="h-4 flex-1" />
+              </div>
+            ))
+          ) : bannerImages.length === 0 ? (
+            <p className="text-muted-foreground py-6 text-center">
+              No banner images yet
+            </p>
+          ) : (
+            bannerImages.map((banner) => (
+              <div
+                key={banner._id}
+                className="flex items-center gap-3 rounded-lg border p-4"
+              >
+                <ImageWithSkeleton
+                  src={banner.imageUrl}
+                  alt="Banner"
+                  width={240}
+                  className="w-24 flex-shrink-0 aspect-video rounded"
+                />
+                <a
+                  href={banner.imageUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="min-w-0 flex-1 truncate text-sm text-blue-600 hover:underline"
+                  title={banner.imageUrl}
+                >
+                  {banner.imageUrl}
+                </a>
+                <Button
+                  size="icon"
+                  variant="destructive"
+                  className="h-11 w-11 flex-shrink-0"
+                  aria-label="Delete banner"
+                  onClick={() => setPendingBanner(banner)}
+                  disabled={deleteLoading && selectedId === banner._id}
+                >
+                  {deleteLoading && selectedId === banner._id ? (
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                  ) : (
+                    <Trash2 className="w-5 h-5" />
+                  )}
+                </Button>
+              </div>
+            ))
+          )}
+        </div>
+
+        {/* Desktop: table */}
+        <div className="hidden overflow-y-auto sm:block">
           <Table>
             <TableHeader>
               <TableRow>

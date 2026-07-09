@@ -49,7 +49,6 @@ const Login: React.FC = () => {
               <Input
                 id="password"
                 type="password"
-                autoFocus
                 autoComplete="current-password"
                 className="h-11 w-full"
                 required

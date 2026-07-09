@@ -16,6 +16,8 @@ type DeleteProductFunction = (id: string) => Promise<void>;
 const ProductDashboard: React.FC = () => {
   const [products, setProducts] = useState<Product[]>([]);
   const [searchTerm, setSearchTerm] = useState<string>("");
+  const [debouncedSearch, setDebouncedSearch] = useState<string>("");
+  const [error, setError] = useState(false);
   const [categoryFilter, setCategoryFilter] = useState<string>("all");
   const [allCategories, setAllCategories] = useState<Category[]>([]);
   const [sortOrder, setSortOrder] = useState<"newest" | "oldest">("newest");
@@ -51,6 +53,12 @@ const ProductDashboard: React.FC = () => {
       }
     };
   }, []);
+
+  // Debounce the search box so typing doesn't fire a request per keystroke.
+  useEffect(() => {
+    const t = setTimeout(() => setDebouncedSearch(searchTerm), 350);
+    return () => clearTimeout(t);
+  }, [searchTerm]);
 
   const deleteProduct: DeleteProductFunction = async (id) => {
     setDeleteLoading(true);
@@ -90,7 +98,7 @@ const ProductDashboard: React.FC = () => {
           params: {
             page,
             limit: 12,
-            search: searchTerm || undefined,
+            search: debouncedSearch || undefined,
             category: categoryFilter !== "all" ? categoryFilter : undefined,
             sort: sortOrder,
           },
@@ -100,22 +108,27 @@ const ProductDashboard: React.FC = () => {
         if (!data.success) throw new Error("Error in server");
         if (fetchId === fetchIdRef.current && !signal.aborted) {
           setLoading(false);
+          setError(false);
           setProducts(data.data);
           setTotalPages(data.pages);
         }
-      } catch (error) {
-        if (error instanceof Error && error.name === "AbortError") {
+      } catch (err) {
+        if (
+          axios.isCancel(err) ||
+          (err instanceof Error && err.name === "AbortError")
+        ) {
           // Request was cancelled, don't update state
           return;
         }
-        console.error("Error fetching products:", error);
+        console.error("Error fetching products:", err);
         if (!signal.aborted) {
+          setLoading(false);
+          setError(true);
           setProducts([]);
-          handlePageChange(1);
         }
       }
     },
-    [searchTerm, categoryFilter, sortOrder, handlePageChange],
+    [debouncedSearch, categoryFilter, sortOrder],
   );
 
   useEffect(() => {
@@ -130,7 +143,7 @@ const ProductDashboard: React.FC = () => {
     setProducts([]);
     handlePageChange(1);
     fetchProducts(1);
-  }, [fetchProducts, searchTerm, categoryFilter, sortOrder, handlePageChange]);
+  }, [fetchProducts, debouncedSearch, categoryFilter, sortOrder, handlePageChange]);
 
   useEffect(() => {
     axios.get("/api/admin/categories").then((response) => {
@@ -178,6 +191,8 @@ const ProductDashboard: React.FC = () => {
         <ProductTable
           products={filteredProducts}
           loading={loading}
+          error={error}
+          onRetry={() => fetchProducts(page)}
           onEdit={(id) => navigate(`/create?id=${id}`)}
           onDelete={(id) =>
             setPendingDelete(products.find((p) => p._id === id) ?? null)
@@ -189,7 +204,6 @@ const ProductDashboard: React.FC = () => {
       <PaginationControls
         page={page}
         totalPages={totalPages}
-        mobile={mobile}
         onPageChange={handlePageChange}
       />
       <ConfirmDialog
